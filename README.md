@@ -35,7 +35,7 @@ Following are the REST API available for Oroboks client
     }]
 }
 ```
-> Please Note : If users is empty, empty users map is returned 
+*Please Note : If users is empty, empty users map is returned*  
 *User JSON contains following fields:*  
 `id`: primary key of the user saved in the database ( This is the UUID saved in database). Will never be null or empty  
 `profile_pic_url`: contains the link to the user profile picture.   

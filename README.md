@@ -122,7 +122,8 @@ Data to be passed:
   ]
 }
 ```
-> Note : If Apartment does not exist JSON does not show that field.
+*Note : If Apartment does not exist JSON does not show that field.*   
+
 **POST Request**  
 `/users/{userid}/locations` - POST Location associated with the user.   
 *The content will be provided in the JSON format. Hence be sure of following:*    

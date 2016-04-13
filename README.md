@@ -68,3 +68,75 @@ Data to be passed:
 `userId`: Required field  
 `roleName`: Required field  
 `birthDate`: optional field but if entering it please note the format for instance : 1989-11-21  
+
+## Location Retrieval
+**GET Requests** :  
+`/locations?zipcode={zipCode}`: Fetches all locations with the specified zipCode.
+`/locations/{locationid}` : Fetches data for displaying locations.
+**Sample JSON Response when location is retrieved**  
+```json
+{
+  "locations": [
+    {
+      "id":"Location@8f0cd406-c138-46ed-b183-8798568de0e3",
+      "address":"12490 QUIVIRA ROAD",
+      "apt":"1620",
+      "city":"OVERLAND PARK",
+      "state":"KANSAS",
+      "country":"UNITED STATES",
+      "zip":"66213",
+      "users":[
+          {
+            "username":"aditya-narain@live.in",
+            "link":"http://localhost:8080/sampleRest/oroboks/users/1"
+          }
+        ],
+        "links": [
+                {
+                    "rel": "self",
+                    "href": "http://localhost:8080/sampleRest/oroboks/locations/8f0cd406-c138-46ed-b183-8798568de0e3"
+                }
+            ]
+    },
+    {
+      "id":"Location@1",
+      "address":"CERNER, 10236 MARION PARK DRIVE",
+      "city":"KANSAS CITY",
+      "state":"MISSOURI",
+      "country":"UNITED STATES",
+      "zip":"64137",
+      "users":[
+          {
+            "username":"aditya-narain@live.in",
+            "link":"http://localhost:8080/sampleRest/oroboks/users/1"
+          }
+        ],
+        "links": [
+                {
+                    "rel": "self",
+                    "href": "http://localhost:8080/sampleRest/oroboks/locations/1"
+                }
+            ]
+      
+    }
+  ]
+}
+```
+> Note : If Apartment does not exist JSON does not show that field.
+**POST Request**  
+`/users/{userid}/locations` - POST Location associated with the user.   
+*The content will be provided in the JSON format. Hence be sure of following:*    
+`Content-Type: application/json`  
+
+// Be sure of case-sensitive for keys  
+Data to be passed:  
+```
+{
+  "streetAddress": "<Street address> //Required",
+  "city":"<City>" //Required,
+  "state":"<State>"//Required ,
+  "zipCode":"<zipCode>"//Required,
+  "apt":"<Apartment Name or Number>" //Optional if we do not put in null will registered in Database which allowed,   
+  "country":"<Country Name>" //Optional. If we do not put country United States is stored by default
+}
+```

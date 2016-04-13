@@ -27,7 +27,6 @@ public class UserLocationDAO implements DAO<UserLocation> {
     private final Logger LOGGER = Logger.getLogger(UserLocationDAO.class
 	    .getSimpleName());
 
-    private final String findUserLocations = "user.findAllLocations";
     private final EntityManager entityManager;
 
     /**
@@ -83,7 +82,6 @@ public class UserLocationDAO implements DAO<UserLocation> {
 	throw new UnsupportedOperationException("This method is unavailaible");
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public List<UserLocation> getEntitiesByField(
 	    Map<String, Object> filterEntitiesByFieldMap) {

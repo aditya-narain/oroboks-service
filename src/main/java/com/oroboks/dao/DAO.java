@@ -37,8 +37,9 @@ public interface DAO<T> {
 	    Map<String, Object> filterEntitiesByFieldMap);
 
     /**
-     * @param entity
-     * @return
+     * Gets the entities by itself. Essentially to check if entity already exists in database.
+     * @param entity Entity to retrieve.
+     * @return List of entities in the database. Can be empty
      */
     public List<T> getEntitiesByField(T entity);
 

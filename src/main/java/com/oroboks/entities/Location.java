@@ -16,7 +16,8 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
- * @author adityanarain
+ * Entity for {@link Location}
+ * @author Aditya Narain
  *
  */
 @Entity
@@ -74,12 +75,12 @@ public class Location extends BaseEntity{
 
     /**
      * Constructor for Location
-     * @param locationType
-     * @param streetAddress
-     * @param city
-     * @param state
-     * @param country
-     * @param zipCode
+     * @param streetAddress Street address of the location, cannot be null or empty.
+     * @param city location city, cannot be null or empty.
+     * @param state location state, cannot be null or empty.
+     * @param country location country, cannot be null or empty.
+     * @param zipCode location zipcode, cannot be null or empty.
+     * @throws IllegalArgumentException if parameter conditions are not met.
      */
     public Location(String streetAddress, String city, String state, String country, String zipCode){
 	if(streetAddress == null || streetAddress.trim().isEmpty()){
@@ -105,74 +106,133 @@ public class Location extends BaseEntity{
     }
 
     /**
-     * @return
+     * Returns location street address.
+     * @return non-null non-empty location street address.
      */
     public String getStreetAddress() {
 	return streetAddress;
     }
 
     /**
-     * @param streetAddress
+     * Sets the location streetAddress.
+     * @param streetAddress location streetAddress. Cannot be null or empty.
+     * @throws IllegalArgumentException if parameter conditions are not met
      */
     public void setStreetAddress(String streetAddress) {
+	if(streetAddress == null || streetAddress.trim().isEmpty()){
+	    throw new IllegalArgumentException("street address cannot be null or empty");
+	}
 	this.streetAddress = streetAddress;
     }
 
     /**
-     * @return
+     * Returns the location apartment. Can be null.
+     * @return location apartment.
      */
     public String getApt() {
 	return apt;
     }
 
     /**
-     * @param apt
+     * Set the location apartment.
+     * @param apt location apartment. Can be null or empty as location might/not have apartment.
      */
     public void setApt(String apt) {
 	this.apt = apt;
     }
 
+    /**
+     * Returns location city.
+     * @return the non-null, non-empty location city.
+     */
     public String getCity() {
 	return city;
     }
 
+    /**
+     * Sets the location city.
+     * @param city location city. Cannot be null or empty.
+     * @throws IllegalArgumentException if parameter conditions are not met.
+     */
     public void setCity(String city) {
+	if(city == null || city.trim().isEmpty()){
+	    throw new IllegalArgumentException("city cannot be null or empty");
+	}
 	this.city = city;
     }
 
+    /**
+     * Returns location state.
+     * @return the non-null, non-empty location state.
+     */
     public String getState() {
 	return state;
     }
 
+    /**Sets the location state.
+     * @param state location state. Cannot be null or empty.
+     * @throws IllegalArgumentException if parameter conditions are not met.
+     */
     public void setState(String state) {
+	if(state == null || state.trim().isEmpty()){
+	    throw new IllegalArgumentException("state cannot be null or empty");
+	}
 	this.state = state;
     }
 
+    /**
+     * Returns location country.
+     * @return the non-null, non-empty location country.
+     */
     public String getCountry() {
 	return country;
     }
 
+    /**
+     * Sets the location country.
+     * @param country location country. Cannot be null or empty.
+     * @throws IllegalArgumentException if parameter conditions are not met.
+     */
     public void setCountry(String country) {
+	if(country == null || country.trim().isEmpty()){
+	    throw new IllegalArgumentException("country cannot be null or empty");
+	}
 	this.country = country;
     }
 
+    /**
+     * Returns location zipCode.
+     * @return the non-null, non-empty location zipCode.
+     */
     public String getZipCode() {
 	return zipCode;
     }
 
+    /**
+     * Sets the location zipCode.
+     * @param zipCode location zipCode. Cannot be null or empty.
+     * @throws IllegalArgumentException if parameter conditions are not met.
+     */
     public void setZipCode(String zipCode) {
+	if(zipCode == null || zipCode.trim().isEmpty()){
+	    throw new IllegalArgumentException("zipCode cannot be null or empty");
+	}
 	this.zipCode = zipCode;
     }
 
-    public void setUserLocations(Set<UserLocation> userLocations) {
-	this.userLocations = userLocations;
-    }
-
-
+    /**
+     * Returns location city.
+     * @return the non-null, non-empty location city.
+     */
     public Set<UserLocation> getUserLocations(){
 	return userLocations;
     }
 
+    /**
+     * Sets the location city.
+     * @param userlocations Set of {@link UserLocation}, Cannot be null.
+     * @throws IllegalArgumentException if parameter conditions are not met.
+     */
     public void setUserLocation(Set<UserLocation> userlocations){
 	if(userlocations == null){
 	    throw new IllegalArgumentException("userlocation set cannot be null");
@@ -180,6 +240,11 @@ public class Location extends BaseEntity{
 	this.userLocations = userlocations;
     }
 
+    /**
+     * Sets the location city.
+     * @param userLocation represents {@link UserLocation}. Cannot be null
+     * @throws IllegalArgumentException if parameter conditions are not met.
+     */
     @JsonIgnore
     public void setUserLocation(UserLocation userLocation){
 	if(userLocation == null){

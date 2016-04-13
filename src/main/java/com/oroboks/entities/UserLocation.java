@@ -6,8 +6,6 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
@@ -19,9 +17,6 @@ import com.oroboks.util.Status;
  * @author Aditya Narain
  */
 @Entity
-@NamedQueries({
-    @NamedQuery(name = "user.findAllLocations", query = "select userlocations.location,userlocations.isDefaultLocation from UserLocation userlocations where userlocations.user = :userId and userlocations.isActive = :isActive")
-})
 @Table(name = "ORO_USER_LOCATIONS")
 public class UserLocation extends BaseEntity {
 

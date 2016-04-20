@@ -48,6 +48,7 @@ public class GuiceServlet extends GuiceServletContextListener {
 		    bind(resources);
 		}
 		serve("/*").with(GuiceContainer.class);
+		filter("/*").through(CorsFilter.class);
 
 	    }
 

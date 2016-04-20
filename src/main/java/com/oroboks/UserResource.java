@@ -118,8 +118,7 @@ public class UserResource {
 	return userMapList.isEmpty() ? Response
 		.status(HttpServletResponse.SC_NO_CONTENT).entity(result)
 		.build() : Response.status(HttpServletResponse.SC_OK)
-		.entity(result).header("Access-Control-Allow-Origin", "*")
-		.build();
+		.entity(result).build();
     }
 
     /**
@@ -148,10 +147,8 @@ public class UserResource {
 	result.put("Users", userMapList);
 	return userMapList.isEmpty() ? Response
 		.status(HttpServletResponse.SC_NO_CONTENT).entity(result)
-		.header("Access-Control-Allow-Origin", "*").build() : Response
-		.status(HttpServletResponse.SC_OK)
-		.header("Access-Control-Allow-Origin", "*").entity(result)
-		.build();
+		.build() : Response.status(HttpServletResponse.SC_OK)
+		.entity(result).build();
 
     }
 
@@ -200,9 +197,8 @@ public class UserResource {
 	return (savedUser == null) ? Response
 		.status(HttpServletResponse.SC_NOT_ACCEPTABLE)
 		.entity("User could not be saved as it already exists in database or null")
-		.header("Access-Control-Allow-Origin", "*").build()
-		: Response.status(HttpServletResponse.SC_CREATED)
-		.header("Access-Control-Allow-Origin", "*").build();
+		.build()
+		: Response.status(HttpServletResponse.SC_CREATED).build();
     }
 
     /**
@@ -241,7 +237,7 @@ public class UserResource {
 	if (users.isEmpty()) {
 	    return Response.status(HttpServletResponse.SC_NOT_IMPLEMENTED)
 		    .entity("Cannot add user location as user does not exist")
-		    .header("Access-Control-Allow-Origin", "*").build();
+		    .build();
 	}
 
 	if (hasDefaultLocation(users.get(0))) {
@@ -258,7 +254,7 @@ public class UserResource {
 	} else {
 	    if (checkIfLocationExistsForUser(users.get(0), locations.get(0))) {
 		return Response.status(HttpServletResponse.SC_NOT_MODIFIED)
-			.header("Access-Control-Allow-Origin", "*")
+
 			.entity("UserLocation already exists").build();
 	    }
 	    userLocation.setLocation(locations.get(0));
@@ -269,9 +265,8 @@ public class UserResource {
 	return (savedUserLocation == null) ? Response
 		.status(HttpServletResponse.SC_NOT_ACCEPTABLE)
 		.entity("UserLocation could not be saved as it already exists in database or null")
-		.header("Access-Control-Allow-Origin", "*").build()
-		: Response.status(HttpServletResponse.SC_CREATED)
-		.header("Access-Control-Allow-Origin", "*").build();
+		.build()
+		: Response.status(HttpServletResponse.SC_CREATED).build();
     }
 
     /**
@@ -299,19 +294,16 @@ public class UserResource {
 		.deActivateEntity(users.get(0)));
 	if (user == null) {
 	    return Response.status(HttpServletResponse.SC_ACCEPTED)
-		    .entity("Error Deleting user with id:" + emailId)
-		    .header("Access-Control-Allow-Origin", "*").build();
+		    .entity("Error Deleting user with id:" + emailId).build();
 	} else if (user.getUserId() == null
 		|| user.getUserId().trim().isEmpty()) {
 	    return Response.status(HttpServletResponse.SC_NOT_MODIFIED)
-		    .entity("No Entities Deleted")
-		    .header("Access-Control-Allow-Origin", "*").build();
+		    .entity("No Entities Deleted").build();
 	} else {
 	    return Response
 		    .status(HttpServletResponse.SC_OK)
 		    .entity("User with userId: " + emailId
-			    + " deActivated successfully")
-			    .header("Access-Control-Allow-Origin", "*").build();
+			    + " deActivated successfully").build();
 	}
     }
 

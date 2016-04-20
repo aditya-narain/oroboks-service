@@ -48,11 +48,13 @@ public class LocationResource {
     /**
      * Gets all the locations from given zip code. The zipcode is sent in as a
      * query parameter.<br/>
+     * 
      * @param zipcode
      *            zipcode of the area. Cannot be null or empty
      * @return {@link Response}. If no locations are found with the provided
-     *         zipcode or {@link HibernateException} is caught</Strong>, empty list is returned else locations is returned in a
-     *         specific map format.
+     *         zipcode or {@link HibernateException} is caught</Strong>, empty
+     *         list is returned else locations is returned in a specific map
+     *         format.
      * @throws IllegalArgumentException
      *             if parameter conditions are not met.
      */
@@ -77,7 +79,7 @@ public class LocationResource {
 	Map<String, Object> resultMap = new HashMap<String, Object>(1);
 	resultMap.put("locations", locationMapList);
 	return Response.status(HttpServletResponse.SC_OK).entity(resultMap)
-		.header("Access-Control-Allow-Origin", "*").build();
+		.build();
     }
 
     /**
@@ -103,7 +105,7 @@ public class LocationResource {
 	List<Location> locations = locationDAO
 		.getEntitiesByField(locationIdMap);
 	if (locations.isEmpty()) {
-	    return Response.status(HttpServletResponse.SC_NO_CONTENT).header("Access-Control-Allow-Origin", "*").build();
+	    return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
 	}
 	List<Map<String, Object>> locationMapList = new ArrayList<Map<String, Object>>(
 		locations.size());
@@ -114,7 +116,7 @@ public class LocationResource {
 	Map<String, Object> resultMap = new HashMap<String, Object>(1);
 	resultMap.put("locations", locationMapList);
 	return Response.status(HttpServletResponse.SC_OK).entity(resultMap)
-		.header("Access-Control-Allow-Origin", "*").build();
+		.build();
     }
 
 }

@@ -77,7 +77,7 @@ public class LocationResource {
 	Map<String, Object> resultMap = new HashMap<String, Object>(1);
 	resultMap.put("locations", locationMapList);
 	return Response.status(HttpServletResponse.SC_OK).entity(resultMap)
-		.build();
+		.header("Access-Control-Allow-Origin", "*").build();
     }
 
     /**
@@ -103,7 +103,7 @@ public class LocationResource {
 	List<Location> locations = locationDAO
 		.getEntitiesByField(locationIdMap);
 	if (locations.isEmpty()) {
-	    return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
+	    return Response.status(HttpServletResponse.SC_NO_CONTENT).header("Access-Control-Allow-Origin", "*").build();
 	}
 	List<Map<String, Object>> locationMapList = new ArrayList<Map<String, Object>>(
 		locations.size());
@@ -114,7 +114,7 @@ public class LocationResource {
 	Map<String, Object> resultMap = new HashMap<String, Object>(1);
 	resultMap.put("locations", locationMapList);
 	return Response.status(HttpServletResponse.SC_OK).entity(resultMap)
-		.build();
+		.header("Access-Control-Allow-Origin", "*").build();
     }
 
 }

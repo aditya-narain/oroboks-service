@@ -68,7 +68,8 @@ public class UserResource {
      * Method handling HTTP GET requests. The returned object will be sent to
      * the client as "JSON" media type.
      * 
-     * @param emailId of the person. Cannot be null or empty.
+     * @param emailId
+     *            of the person. Cannot be null or empty.
      * @param roleName
      * @return all active {@link User users} in the JSON format. <br/>
      *         <Strong> Will return emptyList if there are no active users or
@@ -117,7 +118,8 @@ public class UserResource {
 	return userMapList.isEmpty() ? Response
 		.status(HttpServletResponse.SC_NO_CONTENT).entity(result)
 		.build() : Response.status(HttpServletResponse.SC_OK)
-		.entity(result).build();
+		.entity(result).header("Access-Control-Allow-Origin", "*")
+		.build();
     }
 
     /**
@@ -146,8 +148,10 @@ public class UserResource {
 	result.put("Users", userMapList);
 	return userMapList.isEmpty() ? Response
 		.status(HttpServletResponse.SC_NO_CONTENT).entity(result)
-		.build() : Response.status(HttpServletResponse.SC_OK)
-		.entity(result).build();
+		.header("Access-Control-Allow-Origin", "*").build() : Response
+		.status(HttpServletResponse.SC_OK)
+		.header("Access-Control-Allow-Origin", "*").entity(result)
+		.build();
 
     }
 
@@ -196,8 +200,9 @@ public class UserResource {
 	return (savedUser == null) ? Response
 		.status(HttpServletResponse.SC_NOT_ACCEPTABLE)
 		.entity("User could not be saved as it already exists in database or null")
-		.build()
-		: Response.status(HttpServletResponse.SC_CREATED).build();
+		.header("Access-Control-Allow-Origin", "*").build()
+		: Response.status(HttpServletResponse.SC_CREATED)
+		.header("Access-Control-Allow-Origin", "*").build();
     }
 
     /**
@@ -211,7 +216,8 @@ public class UserResource {
      *         {@link HttpServletResponse#SC_NOT_MODIFIED} is returned else
      *         {@link HttpServletResponse#SC_OK} is returned when entity is
      *         saved.
-     * @throws SaveException if an Exception occours while saving location.
+     * @throws SaveException
+     *             if an Exception occours while saving location.
      * @throws IllegalArgumentException
      *             is exception is caught. When exception is caught
      *             {@link HttpServletResponse#SC_NOT_IMPLEMENTED} is returned.
@@ -223,7 +229,7 @@ public class UserResource {
 	if (userId == null || userId.trim().isEmpty()) {
 	    throw new IllegalArgumentException("id cannot be null or empty");
 	}
-	if(location == null){
+	if (location == null) {
 	    throw new IllegalArgumentException("location cannot be null");
 	}
 	verifyLocation(location);
@@ -235,35 +241,37 @@ public class UserResource {
 	if (users.isEmpty()) {
 	    return Response.status(HttpServletResponse.SC_NOT_IMPLEMENTED)
 		    .entity("Cannot add user location as user does not exist")
-		    .build();
+		    .header("Access-Control-Allow-Origin", "*").build();
 	}
 
-	if(hasDefaultLocation(users.get(0))){
+	if (hasDefaultLocation(users.get(0))) {
 	    userLocation.setDefaultLocation(0);
-	}
-	else{
+	} else {
 	    userLocation.setDefaultLocation(1);
 	}
 	userLocation.setUser(users.get(0));
 
-	List<Location> locations = locationDAO.getEntitiesByField(locationToSave);
-	if(locations.isEmpty()){
+	List<Location> locations = locationDAO
+		.getEntitiesByField(locationToSave);
+	if (locations.isEmpty()) {
 	    userLocation.setLocation(locationToSave);
-	}
-	else{
-	    if(checkIfLocationExistsForUser(users.get(0), locations.get(0))){
+	} else {
+	    if (checkIfLocationExistsForUser(users.get(0), locations.get(0))) {
 		return Response.status(HttpServletResponse.SC_NOT_MODIFIED)
+			.header("Access-Control-Allow-Origin", "*")
 			.entity("UserLocation already exists").build();
 	    }
 	    userLocation.setLocation(locations.get(0));
 	}
-	UserLocation savedUserLocation = userLocationDAO.addEntity(userLocation);
+	UserLocation savedUserLocation = userLocationDAO
+		.addEntity(userLocation);
 
 	return (savedUserLocation == null) ? Response
 		.status(HttpServletResponse.SC_NOT_ACCEPTABLE)
 		.entity("UserLocation could not be saved as it already exists in database or null")
-		.build()
-		: Response.status(HttpServletResponse.SC_CREATED).build();
+		.header("Access-Control-Allow-Origin", "*").build()
+		: Response.status(HttpServletResponse.SC_CREATED)
+		.header("Access-Control-Allow-Origin", "*").build();
     }
 
     /**
@@ -291,22 +299,25 @@ public class UserResource {
 		.deActivateEntity(users.get(0)));
 	if (user == null) {
 	    return Response.status(HttpServletResponse.SC_ACCEPTED)
-		    .entity("Error Deleting user with id:" + emailId).build();
+		    .entity("Error Deleting user with id:" + emailId)
+		    .header("Access-Control-Allow-Origin", "*").build();
 	} else if (user.getUserId() == null
 		|| user.getUserId().trim().isEmpty()) {
 	    return Response.status(HttpServletResponse.SC_NOT_MODIFIED)
-		    .entity("No Entities Deleted").build();
+		    .entity("No Entities Deleted")
+		    .header("Access-Control-Allow-Origin", "*").build();
 	} else {
 	    return Response
 		    .status(HttpServletResponse.SC_OK)
 		    .entity("User with userId: " + emailId
-			    + " deActivated successfully").build();
+			    + " deActivated successfully")
+			    .header("Access-Control-Allow-Origin", "*").build();
 	}
     }
 
     private boolean hasDefaultLocation(User user) {
 	Set<UserLocation> userLocations = user.getUserLocations();
-	for(UserLocation userLocation : userLocations){
+	for (UserLocation userLocation : userLocations) {
 	    if (userLocation.isDefaultLocation()
 		    && Status.ACTIVE.getStatus().equals(
 			    userLocation.getIsActive())) {
@@ -333,25 +344,27 @@ public class UserResource {
 
     private boolean checkIfLocationExistsForUser(User user, Location location) {
 	Set<UserLocation> userLocations = user.getUserLocations();
-	for(UserLocation userLocation : userLocations){
-	    if(userLocation.getLocation().getUUID().equals(location.getUUID())){
+	for (UserLocation userLocation : userLocations) {
+	    if (userLocation.getLocation().getUUID().equals(location.getUUID())) {
 		return true;
 	    }
 	}
 	return false;
 
     }
+
     private void verifyLocation(Location entity) throws SaveException {
-	if(entity.getZipCode() == null || entity.getZipCode().trim().isEmpty()){
+	if (entity.getZipCode() == null || entity.getZipCode().trim().isEmpty()) {
 	    throw new SaveException("zip code is null or empty");
 	}
-	if(entity.getState() == null || entity.getState().trim().isEmpty()){
+	if (entity.getState() == null || entity.getState().trim().isEmpty()) {
 	    throw new SaveException("state cannot be null or empty");
 	}
-	if(entity.getStreetAddress() == null || entity.getStreetAddress().trim().isEmpty()){
+	if (entity.getStreetAddress() == null
+		|| entity.getStreetAddress().trim().isEmpty()) {
 	    throw new SaveException("street address cannot be null or empty");
 	}
-	if(entity.getCity() == null || entity.getCity().trim().isEmpty()){
+	if (entity.getCity() == null || entity.getCity().trim().isEmpty()) {
 	    throw new SaveException("city cannot be null or empty");
 	}
 
@@ -361,10 +374,11 @@ public class UserResource {
 	Location location = new Location();
 	if (entity.getCountry() == null || entity.getCountry().isEmpty()) {
 	    // By default country will be set to united states.
-	    // This will be valid until services are extended to other countries too.
+	    // This will be valid until services are extended to other countries
+	    // too.
 	    location.setCountry("United States".toLowerCase());
 	}
-	if(entity.getApt() != null && !entity.getApt().trim().isEmpty()){
+	if (entity.getApt() != null && !entity.getApt().trim().isEmpty()) {
 	    location.setApt(entity.getApt().toLowerCase());
 	}
 	location.setZipCode(entity.getZipCode().toLowerCase());
@@ -373,6 +387,5 @@ public class UserResource {
 	location.setStreetAddress(entity.getStreetAddress().toLowerCase());
 	return location;
     }
-
 
 }

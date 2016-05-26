@@ -10,10 +10,12 @@ import javax.persistence.FetchType;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.oroboks.util.FormatterUtility;
 
 /**
  * Entity for {@link Location}
@@ -57,8 +59,19 @@ public class Location extends BaseEntity{
     @Column(name = "ZIP")
     private String zipCode;
 
+    @NotNull
+    @Column(name = "LATITUDE")
+    private Double latitude;
+
+    @NotNull
+    @Column(name = "LONGITUDE")
+    private Double longitude;
+
     @OneToMany(fetch = FetchType.EAGER,mappedBy = "location", cascade = CascadeType.ALL)
     private Set<UserLocation> userLocations = new HashSet<UserLocation>();
+
+    @OneToOne(fetch = FetchType.EAGER, mappedBy = "location", cascade = CascadeType.ALL)
+    private Restaurant restaurant;
 
 
 
@@ -80,9 +93,12 @@ public class Location extends BaseEntity{
      * @param state location state, cannot be null or empty.
      * @param country location country, cannot be null or empty.
      * @param zipCode location zipcode, cannot be null or empty.
+     * @param latitude locations latitude, cannot be null.
+     * @param longitude locations longitude, cannot be null.
      * @throws IllegalArgumentException if parameter conditions are not met.
      */
-    public Location(String streetAddress, String city, String state, String country, String zipCode){
+    public Location(String streetAddress, String city, String state,
+	    String country, String zipCode, Double latitude, Double longitude) {
 	if(streetAddress == null || streetAddress.trim().isEmpty()){
 	    throw new IllegalArgumentException("streetAddress cannot be null or empty");
 	}
@@ -98,11 +114,19 @@ public class Location extends BaseEntity{
 	if(zipCode == null || zipCode.trim().isEmpty()){
 	    throw new IllegalArgumentException("zipCode cannot be null or empty");
 	}
+	if(latitude == null){
+	    throw new IllegalArgumentException("latitude cannot be null");
+	}
+	if(longitude == null){
+	    throw new IllegalArgumentException("longitude cannot be null");
+	}
 	this.streetAddress = streetAddress;
 	this.city = city;
 	this.state = state;
 	this.country = country;
 	this.zipCode = zipCode;
+	this.latitude = FormatterUtility.roundOffValuesFor(latitude);
+	this.longitude = FormatterUtility.roundOffValuesFor(longitude);;
     }
 
     /**
@@ -221,8 +245,8 @@ public class Location extends BaseEntity{
     }
 
     /**
-     * Returns location city.
-     * @return the non-null, non-empty location city.
+     * Returns user locations .
+     * @return the non-null, locations of the user. May be empty
      */
     public Set<UserLocation> getUserLocations(){
 	return userLocations;
@@ -251,6 +275,59 @@ public class Location extends BaseEntity{
 	    throw new IllegalArgumentException("userlocation set cannot be null");
 	}
 	this.userLocations.add(userLocation);
+    }
+
+    /**
+     * Returns location of the {@link Restaurant}.
+     * @return the non-null, restaurant.
+     */
+    public Restaurant getRestaurants(){
+	return restaurant;
+    }
+
+    /**
+     * Sets the location of the Restaurant
+     * @param restaurant refers to {@link Restaurant}, Cannot be null.
+     * @throws IllegalArgumentException if parameter conditions are not met.
+     */
+    public void setRestaurant(Restaurant restaurant){
+	if(restaurant == null){
+	    throw new IllegalArgumentException("restaurants set cannot be null");
+	}
+	this.restaurant = restaurant;
+    }
+
+    /**
+     * @return locations latitude
+     */
+    public Double getLatitude() {
+	return latitude;
+    }
+
+    /**
+     * Sets locations latitude
+     * @param latitude locations latitude, cannot be null.
+     */
+    public void setLatitude(Double latitude) {
+	if(latitude == null){
+	    throw new IllegalArgumentException("latitude cannot be null");
+	}
+	this.latitude = FormatterUtility.roundOffValuesFor(latitude);
+    }
+
+    /**
+     * @return locations longitude
+     */
+    public Double getLongitude() {
+	return longitude;
+    }
+
+    /**
+     * Sets locations longitude
+     * @param longitude location longitude, Cannot be null
+     */
+    public void setLongitude(Double longitude) {
+	this.longitude = FormatterUtility.roundOffValuesFor(longitude);
     }
 
 }

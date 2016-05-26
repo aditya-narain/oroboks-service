@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,16 @@ public class EntityJsonUtilityTest {
     public void testGetUserResultsMap_nulluriInfo() {
 	User user = new User();
 	EntityJsonUtility.getUserResultsMap(user, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetLocationResultsMap_nullLocation(){
+	EntityJsonUtility.getLocationResultsMap((Location)null, mockUriInfo);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetLocationResultsMap_nullUriInfo(){
+	EntityJsonUtility.getLocationResultsMap(getMockLocation(),(UriInfo) null);
     }
 
     /**
@@ -117,6 +128,45 @@ public class EntityJsonUtilityTest {
 	assertEquals(expectedLinks.getRelationship(), actualRelation.get("rel"));
     }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetLocationResults() throws IllegalArgumentException, UriBuilderException, URISyntaxException{
+	Mockito.when(mockUriInfo.getBaseUriBuilder())
+	.thenReturn(mockUriBuilder);
+	Mockito.when(mockUriBuilder.path(UserResource.class)).thenReturn(
+		mockUriBuilder);
+	Mockito.when(mockUriBuilder.path(LocationResource.class)).thenReturn(
+		mockUriBuilder);
+	Mockito.when(mockUriBuilder.path(Matchers.isA(String.class)))
+	.thenReturn(mockUriBuilder);
+	Mockito.when(mockUriBuilder.build()).thenReturn(
+		new URI("http://oroboks/mockurl/someFakeURL"));
+	Location location = getMockLocation();
+	Map<String, Object> result = EntityJsonUtility.getLocationResultsMap(location, mockUriInfo);
+	assertEquals(location.getUUID(), result.get("id"));
+	assertEquals(location.getStreetAddress(), result.get("address"));
+	assertEquals(location.getState(), result.get("state"));
+	assertEquals(location.getCity(), result.get("city"));
+	assertEquals(location.getCountry(), result.get("country"));
+	assertEquals(location.getZipCode(), result.get("zip"));
+	List<Object> userList = (List<Object>) result.get("users");
+	for(Object userMaps : userList){
+	    Map<String, String> userMap = (Map<String, String>)userMaps;
+	    assertEquals(getMockUser().getUserId(), userMap.get("username"));
+	    assertEquals("http://oroboks/mockurl/someFakeURL", userMap.get("link"));
+	}
+	EntityLinks expectedLinks = new EntityLinks(
+		"http://oroboks/mockurl/someFakeURL", "self");
+	List<Object> actualLinkRelationshipLists = (List<Object>) result
+		.get("links");
+	Map<String, String> actualRelation = (Map<String, String>) actualLinkRelationshipLists
+		.get(0);
+	assertEquals(1, actualLinkRelationshipLists.size());
+	assertEquals(expectedLinks.getHrefLink(), actualRelation.get("href"));
+	assertEquals(expectedLinks.getRelationship(), actualRelation.get("rel"));
+    }
+
+
 
     private User getMockUser() {
 	User user = new User();
@@ -130,5 +180,16 @@ public class EntityJsonUtilityTest {
 	location.setUUID();
 	user.setUserLocation(new UserLocation(user, location, 1));
 	return user;
+    }
+
+    private Location getMockLocation(){
+	Location location = new Location();
+	location.setUUID();
+	location.setStreetAddress("12490 Quivira Rd");
+	location.setCity("Overland Park");
+	location.setState("Kansas");
+	location.setCountry("united states");
+	location.setUserLocation(Collections.singleton(new UserLocation(getMockUser(), new Location(), Status.ACTIVE.getStatus())));
+	return location;
     }
 }

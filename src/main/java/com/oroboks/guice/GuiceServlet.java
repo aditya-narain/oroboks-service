@@ -8,9 +8,11 @@ import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
 import com.oroboks.dao.DAO;
 import com.oroboks.dao.internal.LocationDAO;
+import com.oroboks.dao.internal.RestaurantDAO;
 import com.oroboks.dao.internal.UserDAO;
 import com.oroboks.dao.internal.UserLocationDAO;
 import com.oroboks.entities.Location;
+import com.oroboks.entities.Restaurant;
 import com.oroboks.entities.User;
 import com.oroboks.entities.UserLocation;
 import com.sun.jersey.api.core.PackagesResourceConfig;
@@ -33,6 +35,7 @@ public class GuiceServlet extends GuiceServletContextListener {
 		bind(new TypeLiteral<DAO<User>>() {}).to(UserDAO.class);
 		bind(new TypeLiteral<DAO<UserLocation>>() {}).to(UserLocationDAO.class);
 		bind(new TypeLiteral<DAO<Location>>() {}).to(LocationDAO.class);
+		bind(new TypeLiteral<DAO<Restaurant>>(){}).to(RestaurantDAO.class);
 		bind(JacksonObjectMapperProvider.class).in(Scopes.SINGLETON);
 		bind(
 			forName("com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"))

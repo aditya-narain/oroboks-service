@@ -112,7 +112,7 @@ public class LocationDAO implements DAO<Location> {
 	    LOGGER.log(Level.SEVERE,
 		    "filterEntitiesByFieldMap value is passed in null");
 	    throw new IllegalArgumentException(
-		    "filter entities by field map is null");
+		    "filter entities by field map cannot be null");
 	}
 	List<Location> locations = new ArrayList<Location>();
 	Query query = null;
@@ -154,10 +154,6 @@ public class LocationDAO implements DAO<Location> {
 
     }
 
-    /**
-     * @param location
-     * @return
-     */
     @SuppressWarnings("unchecked")
     @Override
     public List<Location> getEntitiesByField(Location location){

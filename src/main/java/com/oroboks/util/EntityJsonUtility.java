@@ -8,8 +8,11 @@ import java.util.Map;
 import javax.ws.rs.core.UriInfo;
 
 import com.oroboks.LocationResource;
+import com.oroboks.RestaurantResource;
 import com.oroboks.UserResource;
+import com.oroboks.entities.Cuisine;
 import com.oroboks.entities.Location;
+import com.oroboks.entities.Restaurant;
 import com.oroboks.entities.User;
 import com.oroboks.entities.UserLocation;
 
@@ -138,12 +141,55 @@ public class EntityJsonUtility {
 
     }
 
+
+    /**
+     * Return result map for restaurant entities
+     * @param restaurant represnets the {@link Restaurant}. Cannot be null
+     * @param uriInfo {@link UriInfo uriinfo} provides access to application and
+     *            request URI information. Cannot be null
+     * @return Map for representing location in a specific format
+     * @throws IllegalArgumentException
+     *             if parameter conditions are not met.
+     */
+    public static Map<String, Object> getRestaurantResultsMap(
+	    Restaurant restaurant, UriInfo uriInfo) {
+	if(restaurant == null){
+	    throw new IllegalArgumentException("restaurant cannot be null");
+	}
+	if(uriInfo == null){
+	    throw new IllegalArgumentException("uriInfo cannot be null");
+	}
+	Map<String, Object> resultMap = new HashMap<String, Object>();
+	resultMap.put("id", restaurant.getUUID());
+	resultMap.put("name", restaurant.getName());
+	if(restaurant.getUrl() != null && !restaurant.getUrl().trim().isEmpty()){
+	    resultMap.put("url", restaurant.getUrl());
+	}
+	resultMap.put("email", restaurant.getEmail());
+	resultMap.put("contact_number", restaurant.getContact());
+	String profilePicUrl = uriInfo.getBaseUriBuilder().path(RestaurantResource.class).path("images").path(restaurant.getIcon()).build().toString();
+	resultMap.put("profile_pic_url", profilePicUrl);
+	List<String> cuisines = new ArrayList<String>(restaurant.getCuisine().size());
+	for(Cuisine cuisine : restaurant.getCuisine()){
+	    cuisines.add(cuisine.getCuisine().toLowerCase());
+	}
+	resultMap.put("cuisines", cuisines);
+	//TODO: Add combos availaible for the restaurant.
+	List<Object> linksList = new ArrayList<Object>();
+	String href = uriInfo.getBaseUriBuilder().path(RestaurantResource.class)
+		.path(restaurant.getUUID()).build().toString();
+	EntityLinks otherLinks = new EntityLinks(href, "self");
+	linksList.add(otherLinks.getRelationshipMap());
+	resultMap.put("links", linksList);
+	return resultMap;
+    }
+
     /**
      * Additional Links for each entities.
      * 
      * @author Aditya Narain
      */
-    public static class EntityLinks {
+    static class EntityLinks {
 	private String hrefLink;
 	private String relationship;
 

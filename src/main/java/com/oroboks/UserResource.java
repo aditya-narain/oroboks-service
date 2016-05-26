@@ -30,6 +30,8 @@ import com.oroboks.entities.User;
 import com.oroboks.entities.UserLocation;
 import com.oroboks.exception.SaveException;
 import com.oroboks.util.EntityJsonUtility;
+import com.oroboks.util.GeoCodingUtility;
+import com.oroboks.util.GeoLocationCoordinateUtility;
 import com.oroboks.util.Status;
 
 /**
@@ -230,6 +232,11 @@ public class UserResource {
 	}
 	verifyLocation(location);
 	Location locationToSave = saveLocationInLowerCase(location);
+	if(locationToSave.getLatitude() == null || locationToSave.getLongitude() == null){
+	    return Response.status(HttpServletResponse.SC_NOT_IMPLEMENTED)
+		    .entity("Cannot add user location as error while retrieving location coordinates")
+		    .build();
+	}
 	UserLocation userLocation = new UserLocation();
 	Map<String, Object> getUserByUUIDMap = new HashMap<String, Object>();
 	getUserByUUIDMap.put("uuid", userId);
@@ -377,7 +384,8 @@ public class UserResource {
 	location.setState(entity.getState().toLowerCase());
 	location.setCity(entity.getCity().toLowerCase());
 	location.setStreetAddress(entity.getStreetAddress().toLowerCase());
-	return location;
+	Location updatedLocation = GeoLocationCoordinateUtility.updateLocationWithCoordinates(location, GeoCodingUtility.getInstance());
+	return updatedLocation;
     }
 
 }

@@ -327,6 +327,9 @@ public class Location extends BaseEntity{
      * @param longitude location longitude, Cannot be null
      */
     public void setLongitude(Double longitude) {
+	if(longitude == null){
+	    throw new IllegalArgumentException("longitude cannot be null");
+	}
 	this.longitude = FormatterUtility.roundOffValuesFor(longitude);
     }
 

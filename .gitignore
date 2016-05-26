@@ -1,4 +1,11 @@
 *.class
+.DS_Store
+.classpath
+.gitignore.swp
+.jsdtscope
+
+# Ignore Folders
+/target 
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/

@@ -3,9 +3,14 @@
 
 
 ## Following are the REST API available for Oroboks client
-1 [User Operation](https://github.com/aditya-narain/oroboks-service#user-information-retrieval)
-2 [Location Operation](https://github.com/aditya-narain/oroboks-service#location-retrieval)
-3 [Providers/Restaurant Operation](https://github.com/aditya-narain/oroboks-service#providersrestaurants-retrieval)
+1. [User Operation](https://github.com/aditya-narain/oroboks-service#user-information-retrieval)
+  * [GET Request](https://github.com/aditya-narain/oroboks-service#get-requests-)
+  * [POST Request](https://github.com/aditya-narain/oroboks-service#post--request)
+2. [Location Operation](https://github.com/aditya-narain/oroboks-service#location-retrieval)
+  * [GET Request](https://github.com/aditya-narain/oroboks-service#get-requests--1)
+  * [POST Request](https://github.com/aditya-narain/oroboks-service#post-request)
+3. [Providers/Restaurant Operation](https://github.com/aditya-narain/oroboks-service#providersrestaurants-retrieval)
+  * [GET Request](https://github.com/aditya-narain/oroboks-service#get-request)
 
 ## User Information Retrieval 
 ##### GET Requests :  

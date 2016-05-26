@@ -141,3 +141,33 @@ Data to be passed:
   "country":"<Country Name>" //Optional. If we do not put country United States is stored by default
 }
 ```
+## Providers(Restaurants) Retrieval
+> Note : This REST API will be extended to give the combo boxes. JSON will be extended
+
+**GET REQUEST**
+`/locations/{zipCode}/restaurants` - Fetches all the active restaurants in 10 miles radius of the zipcode.
+**Sample JSON for Restaurant Tentatively (Combos will be added and this json will be updated)**
+```json 
+{
+    "restaurants": [
+        {
+            "cuisines": [
+                "indian",
+                "pakistani"
+            ],
+            "contact_number": "9133399511",
+            "id": "1",
+            "profile_pic_url": "http://localhost:8080/oroboks/restaurants/images/default",
+            "email": "abc@kulturekurry.com",
+            "name": "Kulture Kurry",
+            "links": [
+                {
+                    "rel": "self",
+                    "href": "http://localhost:8080/oroboks/restaurants/1"
+                }
+            ],
+            "url": "www.kulturekurry.com"
+        }
+    ]
+}
+```

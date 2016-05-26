@@ -3,12 +3,12 @@
 
 
 ## Following are the REST API available for Oroboks client
-* [User Operation](https://github.com/aditya-narain/oroboks-service#user-information-retrieval)
-* [Location Operation](https://github.com/aditya-narain/oroboks-service#location-retrieval)
-* [Providers/Restaurant Operation](https://github.com/aditya-narain/oroboks-service#providersrestaurants-retrieval)
+1 [User Operation](https://github.com/aditya-narain/oroboks-service#user-information-retrieval)
+2 [Location Operation](https://github.com/aditya-narain/oroboks-service#location-retrieval)
+3 [Providers/Restaurant Operation](https://github.com/aditya-narain/oroboks-service#providersrestaurants-retrieval)
 
 ## User Information Retrieval 
- ### GET Requests :  
+##### GET Requests :  
 `/users` : Fetches all *active* users in the specified JSON format.  
 `/users?emailId={EmailId}` :  Fetches user with given emailId in the specified JSON format.  
 `/users?role={RoleName}`: Fetches all users for the specified role in JSON format.  
@@ -53,7 +53,7 @@
 `links`:  These specify some other useful links w.r.t user. Currently it has links to self.   
 T.B.D: What other things we can chip in.  
 
-### POST  Request:  
+##### POST  Request:  
 `/users` : Will add the user specified in the content.  
 
 *The content will be provided in the JSON format. Hence be sure of following:*  
@@ -73,7 +73,7 @@ Data to be passed:
 `birthDate`: optional field but if entering it please note the format for instance : 1989-11-21  
 
 ## Location Retrieval
-### GET Requests :  
+##### GET Requests :  
 `/locations?zipcode={zipCode}`: Fetches all locations with the specified zipCode.
 `/locations/{locationid}` : Fetches data for displaying locations.
 **Sample JSON Response when location is retrieved**  
@@ -127,7 +127,7 @@ Data to be passed:
 ```
 *Note : If Apartment does not exist JSON does not show that field.*   
 
-### POST Request  
+##### POST Request  
 `/users/{userid}/locations` - POST Location associated with the user.   
 *The content will be provided in the JSON format. Hence be sure of following:*    
 `Content-Type: application/json`  
@@ -147,7 +147,7 @@ Data to be passed:
 ## Providers(Restaurants) Retrieval
 > Note : This REST API will be extended to give the combo boxes. JSON will be extended
 
-### GET REQUEST
+##### GET REQUEST
 `/locations/{zipCode}/restaurants` - Fetches all the active restaurants in 10 miles radius of the zipcode.
 **Sample JSON for Restaurant Tentatively (Combos will be added and this json will be updated)**
 ```json 

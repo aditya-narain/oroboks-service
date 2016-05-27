@@ -9,12 +9,13 @@
     		<!-- Scan for annotated classes and Hibernate mapping XML files -->
 			<property name="hibernate.archive.autodetection" value="class, hbm" />
 	    	<property name="hibernate.connection.driver_class" value= "com.mysql.jdbc.Driver"/>
-			<!-- <property name="hibernate.connection.url" value= "jdbc:mysql://us-cdbr-iron-east-03.cleardb.net/heroku_dd63153734e3ddb"/>
+			<property name="hibernate.connection.url" value= "jdbc:mysql://us-cdbr-iron-east-03.cleardb.net/heroku_dd63153734e3ddb"/>
 			<property name="hibernate.connection.username" value="b0e9502d5f1286"/>
-			<property name="hibernate.connection.password" value="66a2f2f5"/> -->
-			<property name="hibernate.connection.url" value= "jdbc:mysql://localhost:3306/ORO_DB"/>
+			<property name="hibernate.connection.password" value="66a2f2f5"/> 
+			<!-- To be used with locahost -->
+			<!--  <property name="hibernate.connection.url" value= "jdbc:mysql://localhost:3306/ORO_DB"/>
 			<property name="hibernate.connection.username" value="root"/>
-			<property name="hibernate.connection.password" value="root"/>
+			<property name="hibernate.connection.password" value="root"/> -->
 			
 			<property name="hibernate.dialect" value= "org.hibernate.dialect.MySQLDialect"/>
 			<property name="show_sql" value="true"/>

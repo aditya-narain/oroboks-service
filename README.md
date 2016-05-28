@@ -153,7 +153,11 @@ Data to be passed:
 > Note : This REST API will be extended to give the combo boxes. JSON will be extended
 
 ##### GET REQUEST
-`/locations/{zipCode}/restaurants` - Fetches all the active restaurants in 10 miles radius of the zipcode.
+`/restaurants/locations/{zipcode}` - Fetches all the active restaurants in 8 miles radius of the zipcode.
+`/restaurants/locations?latitude={latitude}&longitude={longitude}` : Fetches all the active restaurants in 8 miles radius of the location coordinates.
+
+*Please Note : I could have written /locations/{zipcode}/restaurants, makes more sense but was confused how to write the second rest api with location coordinates. I also personally feel this REST API would have meaning something like : Get me restaurants in specific locations.
+
 **Sample JSON for Restaurant Tentatively (Combos will be added and this json will be updated)**
 ```json 
 {

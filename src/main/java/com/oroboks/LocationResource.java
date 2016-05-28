@@ -25,10 +25,6 @@ import com.oroboks.dao.DAO;
 import com.oroboks.entities.Location;
 import com.oroboks.entities.Restaurant;
 import com.oroboks.util.EntityJsonUtility;
-import com.oroboks.util.GeoCodingUtility;
-import com.oroboks.util.GeoLocationCoordinateUtility;
-import com.oroboks.util.GeoLocationCoordinateUtility.LocationCoordinate;
-import com.oroboks.util.GeoLocationCoordinateUtility.LocationCoordinateBounds;
 
 /**
  * Resource class for locations (exposed at "locations" path)
@@ -41,10 +37,8 @@ public class LocationResource {
     private final Logger LOGGER = Logger.getLogger(LocationResource.class
 	    .getSimpleName());
 
-    // Location radius in miles
-    private final Double locationRadiusInMiles = 5.2;
+
     private final DAO<Location> locationDAO;
-    private final DAO<Restaurant> restaurantDAO;
 
     /**
      * @param locationDAO DAO for {@link Location}, can never be null.
@@ -53,7 +47,7 @@ public class LocationResource {
     @Inject
     public LocationResource(DAO<Location> locationDAO, DAO<Restaurant> restaurantDAO) {
 	this.locationDAO = locationDAO;
-	this.restaurantDAO = restaurantDAO;
+
     }
 
     @Context
@@ -82,6 +76,7 @@ public class LocationResource {
 	zipCodeMap.put("zip", zipcode);
 	List<Location> locations = locationDAO.getEntitiesByField(zipCodeMap);
 	if (locations.isEmpty()) {
+	    LOGGER.log(Level.INFO, "No Locations found");
 	    return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
 	}
 	List<Map<String, Object>> locationMapList = new ArrayList<Map<String, Object>>(
@@ -131,41 +126,6 @@ public class LocationResource {
 	resultMap.put("locations", locationMapList);
 	return Response.status(HttpServletResponse.SC_OK).entity(resultMap)
 		.build();
-    }
-
-    /**
-     * Request to fetch restaurants within cetain mile range for given zipcode.
-     * @param zipCode zipcode of the location. Cannot be null or empty.
-     * @return {@link Response}. If no restaurants are found with the provided
-     *         uuid, emptylist is returned else restaurant is returned in a specific map
-     *         format.
-     * @throws IllegalArgumentException if paramter conditions are not met.
-     */
-    @GET
-    @Path("/{zipcode}/restaurants")
-    public Response getRestaurantsAroundLocations(@PathParam("zipcode") String zipCode){
-	if(zipCode == null || zipCode.trim().isEmpty()){
-	    throw new IllegalArgumentException("zipcode cannot be null or empty");
-	}
-	Map<String, Object> result = new HashMap<String, Object>();
-	// Gets the location coordinates from zipcode
-	LocationCoordinate zipCodeCoordinate = GeoLocationCoordinateUtility.getLocationCoordinate(zipCode, locationDAO, GeoCodingUtility.getInstance());
-	if(zipCodeCoordinate == null){
-	    LOGGER.log(Level.SEVERE, "Could not determine location coordinate for zipCode :" + zipCode);
-	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).entity("Could not determine coodinates for given location").build();
-	}
-	// Calculates the location bounds within specified radius(in miles) of zipcode.
-	LocationCoordinateBounds bounds = GeoLocationCoordinateUtility.calculateLocationBoundsWithinRadius(zipCodeCoordinate, locationRadiusInMiles);
-	Map<String, Object> filterEntitiesByFieldMap = new HashMap<String, Object>(1);
-	filterEntitiesByFieldMap.put("locationCoordinateBounds", bounds);
-	List<Restaurant> restaurants = restaurantDAO.getEntitiesByField(filterEntitiesByFieldMap);
-	List<Map<String, Object>> mapLists = new ArrayList<Map<String, Object>>(restaurants.size());
-	for(Restaurant restaurant : restaurants){
-	    mapLists.add(EntityJsonUtility.getRestaurantResultsMap(restaurant, uriInfo));
-	}
-	result.put("restaurants", mapLists);
-	return Response.status(HttpServletResponse.SC_OK).entity(result).build();
-
     }
 
 }

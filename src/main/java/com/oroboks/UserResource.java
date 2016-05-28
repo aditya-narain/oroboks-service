@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
@@ -43,6 +45,9 @@ import com.oroboks.util.Status;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class UserResource {
+    private final Logger LOGGER = Logger.getLogger(UserResource.class
+	    .getSimpleName());
+
     private final DAO<User> userDAO;
     private final DAO<Location> locationDAO;
     private final DAO<UserLocation> userLocationDAO;
@@ -179,13 +184,12 @@ public class UserResource {
      * @throws SaveException
      *             if there is an exception caught while saving user in the
      *             database.
-     * @throws IllegalArgumentException
-     *             if parameters coditions are not met.
      */
     @POST
     public Response addUser(User user) throws SaveException {
 	if (user == null) {
-	    throw new IllegalArgumentException("user cannot be null");
+	    LOGGER.log(Level.SEVERE, "user cannot be null");
+	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).build();
 	}
 	if (user.getUserId() == null || user.getUserId().trim().isEmpty()) {
 	    throw new SaveException("userId cannot be null");
@@ -216,19 +220,18 @@ public class UserResource {
      *         saved.
      * @throws SaveException
      *             if an Exception occours while saving location.
-     * @throws IllegalArgumentException
-     *             is exception is caught. When exception is caught
-     *             {@link HttpServletResponse#SC_NOT_IMPLEMENTED} is returned.
      */
     @POST
     @Path("/{id}/locations")
     public Response addUserLocations(@PathParam("id") String userId,
 	    Location location) throws SaveException {
 	if (userId == null || userId.trim().isEmpty()) {
-	    throw new IllegalArgumentException("id cannot be null or empty");
+	    LOGGER.log(Level.SEVERE, "userId cannot be null or empty");
+	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).build();
 	}
 	if (location == null) {
-	    throw new IllegalArgumentException("location cannot be null");
+	    LOGGER.log(Level.SEVERE, "location cannot be null or empty");
+	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).build();
 	}
 	verifyLocation(location);
 	Location locationToSave = saveLocationInLowerCase(location);
@@ -285,14 +288,13 @@ public class UserResource {
      *            empty
      * @return {@link Response} when user is deActivated and updated in the
      *         database.
-     * @throws IllegalArgumentException
-     *             if parameter conditions are not met.
      */
     @GET
     @Path("/deactivate/{emailid}")
     public Response deleteUserWithId(@PathParam("emailid") String emailId) {
 	if (emailId == null || emailId.trim().isEmpty()) {
-	    throw new IllegalArgumentException("userid cannot be null or empty");
+	    LOGGER.log(Level.SEVERE, "emailId cannot be null or empty");
+	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).build();
 	}
 	List<User> users = getUsersWithEmailId(emailId);
 	// It is guaranteed that only one user exists with the given emailId or

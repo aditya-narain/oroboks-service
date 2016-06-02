@@ -106,7 +106,7 @@ public class TokenUtility {
 	// TODO: Turn on the cookie as secure. Change last parameter.
 	// TODO: Change domain to .oroboks.com
 	// TODO: Change path parameter to "/"
-	NewCookie cookie = new NewCookie(tokenKey, token, null, null, null, NewCookie.DEFAULT_MAX_AGE, true);
+	NewCookie cookie = new NewCookie(tokenKey, token, null, null, null, NewCookie.DEFAULT_MAX_AGE, false);
 	return cookie;
     }
 

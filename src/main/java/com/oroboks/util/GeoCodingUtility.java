@@ -23,7 +23,7 @@ import com.oroboks.util.GeoLocationCoordinateUtility.LocationCoordinate;
 public class GeoCodingUtility {
     private static final Logger LOGGER = Logger.getLogger(GeoCodingUtility.class
 	    .getSimpleName());
-    private final String GOOGLE_KEY_PROPERTY = "/googleKeys.properties";
+    private final String GOOGLE_KEY_PROPERTY = "/properties/apiKeys.properties";
     private static String apiKey;
     private static GeoCodingUtility geoCodingInstance;
     /**
@@ -40,7 +40,7 @@ public class GeoCodingUtility {
 
 	    // load a properties file from class path
 	    properties.load(input);
-	    apiKey = properties.getProperty("apiKey");
+	    apiKey = properties.getProperty("googleApiKey");
 	}
 	catch(IOException exception){
 	    LOGGER.log(Level.SEVERE, "Error processing Input key. Error Trace"+ exception);

@@ -2,6 +2,7 @@ package com.oroboks.util;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -56,5 +57,12 @@ public class GeoCodingUtilityTest {
     public void testZipCodeFromCoordinate_NullLocationCoordinate(){
 	utility.getZipCodeFromCoordinate(null);
     }
+
+    @Ignore
+    @Test
+    public void testGetCoordinateLocationsFromGoogleAPI(){
+	utility.getLocationCoordinatesFromGoogleAPI("66213");
+    }
+
 
 }

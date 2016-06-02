@@ -2,7 +2,6 @@ package com.oroboks;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,11 +19,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-
-import org.hibernate.HibernateException;
 
 import com.oroboks.dao.DAO;
 import com.oroboks.entities.Location;
@@ -35,6 +34,7 @@ import com.oroboks.util.EntityJsonUtility;
 import com.oroboks.util.GeoCodingUtility;
 import com.oroboks.util.GeoLocationCoordinateUtility;
 import com.oroboks.util.Status;
+import com.oroboks.util.TokenUtility;
 
 /**
  * Root resource (exposed at "users" path)
@@ -51,6 +51,7 @@ public class UserResource {
     private final DAO<User> userDAO;
     private final DAO<Location> locationDAO;
     private final DAO<UserLocation> userLocationDAO;
+    private final TokenUtility TOKEN_INSTANCE = TokenUtility.getInstance();
 
     /**
      * @param userDAO
@@ -72,60 +73,18 @@ public class UserResource {
     UriInfo uriInfo;
 
     /**
-     * Method handling HTTP GET requests. The returned object will be sent to
-     * the client as "JSON" media type.
-     * 
-     * @param emailId
-     *            of the person. Cannot be null or empty.
-     * @param roleName
-     * @return all active {@link User users} in the JSON format. <br/>
-     *         <Strong> Will return emptyList if there are no active users or
-     *         {@link HibernateException} is caught</Strong>
+     * Returns the current User with the current token in the cookies
+     * @param httpHeaders represents the http header from where cookie is retrieved. Will never be null
+     * @return current user.
      */
     @GET
-    public Response getAllUsers(@QueryParam("emailid") String emailId,
-	    @QueryParam("role") String roleName) {
-	Map<String, Object> result = new HashMap<String, Object>();
-	List<Object> userMapList = new ArrayList<Object>();
-	List<User> activeUsers = new ArrayList<User>();
-	boolean isGettingAllActiveUsers = true;
-	if (emailId != null && !emailId.trim().isEmpty()) {
-	    isGettingAllActiveUsers = false;
-	    Map<String, Object> filterEntitesByEmailMap = new HashMap<String, Object>();
-	    filterEntitesByEmailMap.put("emailId", emailId);
-	    activeUsers = userDAO.getEntitiesByField(filterEntitesByEmailMap);
+    public Response getUsers(@Context HttpHeaders httpHeaders){
+	String id = TokenUtility.getInstance().getEntityIdFromHttpHeader(httpHeaders);
+	if(id == null || id.trim().isEmpty()){
+	    return Response.status(HttpServletResponse.SC_FORBIDDEN).build();
 	}
-	if (roleName != null && !roleName.trim().isEmpty()) {
-	    isGettingAllActiveUsers = false;
-	    if (activeUsers.isEmpty()) {
-		Map<String, Object> filterEntitesByEmailMap = new HashMap<String, Object>();
-		filterEntitesByEmailMap.put("role", roleName);
-		activeUsers = userDAO
-			.getEntitiesByField(filterEntitesByEmailMap);
-	    } else {
-		Iterator<User> iterator = activeUsers.iterator();
-		while (iterator.hasNext()) {
-		    User user = iterator.next();
-		    if (!user.getRoleName().toLowerCase()
-			    .equals(roleName.toLowerCase())) {
-			iterator.remove();
-		    }
-		}
+	return getUserWithId(id);
 
-	    }
-	}
-	if (isGettingAllActiveUsers) {
-	    activeUsers = userDAO.getAllEntities();
-	}
-	for (User eachActiveUser : activeUsers) {
-	    userMapList.add(EntityJsonUtility.getUserResultsMap(eachActiveUser,
-		    uriInfo));
-	}
-	result.put("Users", userMapList);
-	return userMapList.isEmpty() ? Response
-		.status(HttpServletResponse.SC_NO_CONTENT).entity(result)
-		.build() : Response.status(HttpServletResponse.SC_OK)
-		.entity(result).build();
     }
 
     /**
@@ -176,6 +135,40 @@ public class UserResource {
     }
 
     /**
+     * Creates and returns new token id. This path is called when user signs In.
+     * @param emailId emailId of the user. Cannot be null or empty.
+     * @return {@link Response} with user details with new cookie.
+     */
+    @POST
+    @Path("/getToken")
+    public Response createAndReturnToken(@QueryParam("emailId") String emailId){
+	if(emailId == null || emailId.trim().isEmpty()){
+	    LOGGER.log(Level.SEVERE,"emailId cannot be null or empty");
+	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).build();
+	}
+	List<User> activeUsers = new ArrayList<User>();
+	Map<String, Object> filterEntitesByEmailMap = new HashMap<String, Object>();
+	filterEntitesByEmailMap.put("emailId", emailId);
+	activeUsers = userDAO.getEntitiesByField(filterEntitesByEmailMap);
+	if(activeUsers.isEmpty()){
+	    LOGGER.log(Level.SEVERE, "User does not exist in database");
+	    return Response
+		    .status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+		    .entity("User does not exist in database")
+		    .build();
+	}
+	User user = activeUsers.get(0);
+	String token = TOKEN_INSTANCE.generateJWTKey(user.getUUID());
+	NewCookie cookie = TOKEN_INSTANCE.createCookieWithToken(token);
+	List<Object> userMapList = new ArrayList<Object>();
+	userMapList.add(EntityJsonUtility.getUserResultsMap(user, uriInfo));
+	Map<String, Object> resultMap = new HashMap<String, Object>();
+	resultMap.put("Users", userMapList);
+	return Response.status(HttpServletResponse.SC_OK).entity(resultMap).cookie(cookie).build();
+
+    }
+
+    /**
      * POST the {@link User user} provided.
      * 
      * @param user
@@ -186,7 +179,7 @@ public class UserResource {
      *             database.
      */
     @POST
-    public Response addUser(User user) throws SaveException {
+    public Response addUserAndReturnToken(User user) throws SaveException {
 	if (user == null) {
 	    LOGGER.log(Level.SEVERE, "user cannot be null");
 	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).build();
@@ -199,19 +192,27 @@ public class UserResource {
 	// will be set as null as user will not be saved again or else user will
 	// be saved.
 	User savedUser = !users.isEmpty() ? null : userDAO.addEntity(user);
-
+	final String token;
+	NewCookie cookie = null;
+	if(savedUser != null){
+	    token = TOKEN_INSTANCE.generateJWTKey(savedUser.getUUID());
+	    cookie = TOKEN_INSTANCE.createCookieWithToken(token);
+	}
+	// Ensure cookie does not add token if user is already saved.
 	return (savedUser == null) ? Response
-		.status(HttpServletResponse.SC_NOT_ACCEPTABLE)
+		.status(HttpServletResponse.SC_ACCEPTED)
 		.entity("User could not be saved as it already exists in database or null")
 		.build()
-		: Response.status(HttpServletResponse.SC_CREATED).build();
+		: Response.status(HttpServletResponse.SC_CREATED).cookie(cookie).build();
     }
 
     /**
      * Adds location to the user.
      * 
-     * @param userId
-     *            id of the user. Cannot be null or empty
+     * @param httpHeaders
+     *            represents the http header from where cookie is retrieved.
+     *            Will never be null
+     * 
      * @param location
      *            location to be associated with the user. Cannot be null
      * @return {@link Response}. If UserLocation is already added
@@ -222,13 +223,9 @@ public class UserResource {
      *             if an Exception occours while saving location.
      */
     @POST
-    @Path("/{id}/locations")
-    public Response addUserLocations(@PathParam("id") String userId,
+    @Path("/locations")
+    public Response addUserLocations(@Context HttpHeaders httpHeaders,
 	    Location location) throws SaveException {
-	if (userId == null || userId.trim().isEmpty()) {
-	    LOGGER.log(Level.SEVERE, "userId cannot be null or empty");
-	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).build();
-	}
 	if (location == null) {
 	    LOGGER.log(Level.SEVERE, "location cannot be null or empty");
 	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).build();
@@ -239,6 +236,10 @@ public class UserResource {
 	    return Response.status(HttpServletResponse.SC_NOT_IMPLEMENTED)
 		    .entity("Cannot add user location as error while retrieving location coordinates")
 		    .build();
+	}
+	String userId = TOKEN_INSTANCE.getEntityIdFromHttpHeader(httpHeaders);
+	if(userId == null || userId.trim().isEmpty()){
+	    return Response.status(HttpServletResponse.SC_FORBIDDEN).build();
 	}
 	UserLocation userLocation = new UserLocation();
 	Map<String, Object> getUserByUUIDMap = new HashMap<String, Object>();
@@ -282,28 +283,29 @@ public class UserResource {
     /**
      * DeActivates the {@link User user} with provided userId. Returns a 204 No
      * Content Status when deleted.
-     * 
-     * @param emailId
-     *            Id of the user that needs to be deActivated.Cannot be null or
-     *            empty
+     * @param httpHeaders represents the http header from where cookie is retrieved.
+     *            Will never be null.
      * @return {@link Response} when user is deActivated and updated in the
      *         database.
      */
     @GET
-    @Path("/deactivate/{emailid}")
-    public Response deleteUserWithId(@PathParam("emailid") String emailId) {
-	if (emailId == null || emailId.trim().isEmpty()) {
-	    LOGGER.log(Level.SEVERE, "emailId cannot be null or empty");
-	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).build();
+    @Path("/deactivate")
+    public Response deleteUserWithId(@Context HttpHeaders httpHeaders) {
+	String userId = TOKEN_INSTANCE.getEntityIdFromHttpHeader(httpHeaders);
+	if(userId == null || userId.trim().isEmpty()){
+	    LOGGER.log(Level.SEVERE, "Cannot delete record as valid token is not present");
+	    return Response.status(HttpServletResponse.SC_FORBIDDEN).build();
 	}
-	List<User> users = getUsersWithEmailId(emailId);
+	Map<String, Object> getEntitiesByFieldMap = new HashMap<String, Object>();
+	getEntitiesByFieldMap.put("uuid", userId);
+	List<User> userList = userDAO.getEntitiesByField(getEntitiesByFieldMap);
 	// It is guaranteed that only one user exists with the given emailId or
 	// none exist which indicates user is already deActivated.
-	User user = ((users.isEmpty()) ? new User() : userDAO
-		.deActivateEntity(users.get(0)));
+	User user = ((userList.isEmpty()) ? null : userDAO
+		.deActivateEntity(userList.get(0)));
 	if (user == null) {
-	    return Response.status(HttpServletResponse.SC_ACCEPTED)
-		    .entity("Error Deleting user with id:" + emailId).build();
+	    return Response.status(HttpServletResponse.SC_CONFLICT)
+		    .entity("Error Deleting user").build();
 	} else if (user.getUserId() == null
 		|| user.getUserId().trim().isEmpty()) {
 	    return Response.status(HttpServletResponse.SC_NOT_MODIFIED)
@@ -311,8 +313,7 @@ public class UserResource {
 	} else {
 	    return Response
 		    .status(HttpServletResponse.SC_OK)
-		    .entity("User with userId: " + emailId
-			    + " deActivated successfully").build();
+		    .entity("User deActivated successfully").build();
 	}
     }
 

@@ -14,11 +14,9 @@
 
 ## User Information Retrieval 
 ##### GET Requests :  
-`/users` : Fetches all *active* users in the specified JSON format.  
-`/users?emailId={EmailId}` :  Fetches user with given emailId in the specified JSON format.  
-`/users?role={RoleName}`: Fetches all users for the specified role in JSON format.  
+`/users` : Fetches current *active* user (according to Coookie value) in the specified JSON format. Returns 403 if cookie is tried to be changed/mishandled/expires. 
 `/users/{userId}` :  Fetches user with primary id of the user(UUID generated from database).   
-`/users/deactivate/{emailId}` : Deactivates user with the given emailId. Returns 200 OK, if user is successfully deactivated. Will return 304(No Modified content) if user associated with the emailid is already deactivated.   
+`/users/deactivate` : Deactivates the current user saved in the cookie. Returns 200 OK, if user is successfully deactivated. Will return 304(No Modified content) if user associated with the emailid is already deactivated. Returns 403 if cookie is tried to be changed/mishandled/expires.  
 
 **Sample JSON Response when user is retrieved**  
 ```json
@@ -59,9 +57,11 @@
 T.B.D: What other things we can chip in.  
 
 ##### POST  Request:  
-`/users` : Will add the user specified in the content.  
+`/users` : Will add the user specified in the content. 
+`/users/getToken?emailId=<EmailId>`: This should be called right after user successfully logs in. This request returns the user information after with tokenId in the cookie only if there secured connection. It returns 500, if user does not exist in the database. 
+Example of this request: `/users/getToken?emailId=abc@gmail.com`
 
-*The content will be provided in the JSON format. Hence be sure of following:*  
+*The content for adding user will be provided in the JSON format. Hence be sure of following:*  
 `Content-Type: application/json`  
 
 // Be sure of case-sensitive for keys  
@@ -133,7 +133,7 @@ Data to be passed:
 *Note : If Apartment does not exist JSON does not show that field.*   
 
 ##### POST Request  
-`/users/{userid}/locations` - POST Location associated with the user.   
+`/users/locations` - POST Location associated with the specific user as saved in the cookie. If no token exist in the cookie 403 is returned.   
 *The content will be provided in the JSON format. Hence be sure of following:*    
 `Content-Type: application/json`  
 

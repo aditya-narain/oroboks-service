@@ -58,7 +58,7 @@ T.B.D: What other things we can chip in.
 
 ##### POST  Request:  
 `/users` : Will add the user specified in the content.   
-`/users/getToken?emailId=<EmailId>`: This should be called right after user successfully logs in. This request returns the user information after with tokenId in the cookie only if there secured connection. It returns 500, if user does not exist in the database. 
+`/users/getToken?emailId=<EmailId>`: This should be called right after user successfully logs in. This request returns the user information with tokenId in the cookie only if there secured connection. It returns 500, if user does not exist in the database. 
 Example of this request: `/users/getToken?emailId=abc@gmail.com`
 
 *The content for adding user will be provided in the JSON format. Hence be sure of following:*  

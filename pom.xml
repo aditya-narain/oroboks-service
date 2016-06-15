@@ -121,14 +121,18 @@
 		    <version>1.0.1.Final</version>
 		    <scope>compile</scope>
 		</dependency>
-		<!-- Connection Pooling c3p0 -->
-		<!-- http://mvnrepository.com/artifact/c3p0/c3p0 -->
+		<!-- Hibernate c3p0 connection pool -->
 		<dependency>
-    		<groupId>c3p0</groupId>
-    		<artifactId>c3p0</artifactId>
-   			<version>0.9.1.2</version>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-c3p0</artifactId>
+			<version>4.3.11.Final</version>
 		</dependency>
-		
+		<dependency>
+   			<groupId>c3p0</groupId>
+    		<artifactId>c3p0</artifactId>
+    		<version>0.9.1.2</version>
+		</dependency>
+
 		<dependency>
 			<groupId>javassist</groupId>
 			<artifactId>javassist</artifactId>

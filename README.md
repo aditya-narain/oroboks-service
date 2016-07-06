@@ -9,7 +9,7 @@
 2. [Location Operation](https://github.com/aditya-narain/oroboks-service#location-retrieval)
   * [GET Request](https://github.com/aditya-narain/oroboks-service#get-requests--1)
   * [POST Request](https://github.com/aditya-narain/oroboks-service#post-request)
-3. [Providers/Restaurant Operation](https://github.com/aditya-narain/oroboks-service#providersrestaurants-retrieval)
+3. [Providers/Combos Operation](https://github.com/aditya-narain/oroboks-service#providersrestaurants-retrieval)
   * [GET Request](https://github.com/aditya-narain/oroboks-service#get-request)
 
 ## User Information Retrieval 
@@ -149,37 +149,38 @@ Data to be passed:
   "country":"<Country Name>" //Optional. If we do not put country United States is stored by default
 }
 ```
-## Providers(Restaurants) Retrieval
-> Note : This REST API will be extended to give the combo boxes. JSON will be extended
+## Providers(Combos) Retrieval
 
 ##### GET REQUEST
-`/restaurants/locations/{zipcode}` - Fetches all the active restaurants in 8 miles radius of the zipcode.
-`/restaurants/locations?latitude={latitude}&longitude={longitude}` : Fetches all the active restaurants in 8 miles radius of the location coordinates.
+`/combos/locations/{zipcode}` - Fetches all the active combos availaible in 8 miles radius of the zipcode.
+`/combos/locations?latitude={latitude}&longitude={longitude}` : Fetches all the active combos in 8 miles radius of the location coordinates.
 
-*Please Note : I could have written /locations/{zipcode}/restaurants, makes more sense but was confused how to write the second rest api with location coordinates. I also personally feel this REST API would have meaning something like : Get me restaurants in specific locations.
+*Please Note : I could have written /locations/{zipcode}/combos, makes more sense but was confused how to write the second rest api with location coordinates. I also personally feel this REST API would have meaning something like : Get me combos in specific locations.
 
 **Sample JSON for Restaurant Tentatively (Combos will be added and this json will be updated)**
 ```json 
 {
-    "restaurants": [
-        {
-            "cuisines": [
-                "indian",
-                "pakistani"
-            ],
-            "contact_number": "9133399511",
-            "id": "1",
-            "profile_pic_url": "http://localhost:8080/oroboks/restaurants/images/default",
-            "email": "abc@kulturekurry.com",
-            "name": "Kulture Kurry",
-            "links": [
-                {
-                    "rel": "self",
-                    "href": "http://localhost:8080/oroboks/restaurants/1"
+    "combos": {
+        "indian": [
+            {
+                "ingredients": "SarsoKaSaag, Panner Kofta,Onion, Tomatoes,Chilli",
+                "summary": "India taste brought to US",
+                "id": "4",
+                "availaibleDates": [
+                    "2016-07-07, Thursday"
+                ],
+                "price": "9.5",
+                "sideDish": "Rice, Naan bread",
+                "name": "Ruchi Veggie",
+                "mainDish": "Sarso Ka Saag, Palak Paneer",
+                "image": "default",
+                "restaurant": {
+                    "restaurantwebsite": "www.ruchi.com",
+                    "link": "http://localhost:8080/oroboks/restaurants/2",
+                    "restaurantName": "Ruchi"
                 }
-            ],
-            "url": "www.kulturekurry.com"
-        }
-    ]
+            }
+        ]
+    }
 }
 ```

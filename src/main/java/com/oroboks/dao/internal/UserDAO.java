@@ -25,10 +25,7 @@ import com.oroboks.util.Status;
  */
 @Transactional
 public class UserDAO implements DAO<User> {
-    /**
-     * Logger for logging message with their severity
-     */
-    public final Logger LOGGER = Logger.getLogger(UserDAO.class.getSimpleName());
+    private final Logger LOGGER = Logger.getLogger(UserDAO.class.getSimpleName());
     private final String findAllActiveUsers = "UserEntity.findAllActiveUser";
     private final String findUserByEmailId = "UserEntity.findUserByEmailId";
     private final String findUserByUserType = "UserEntity.findUserByUserRole";

@@ -4,11 +4,14 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 /**
  * Utility for converting Date to SQL format date.
@@ -80,9 +83,11 @@ public class DateUtility {
 	}
 
 	/**
-	 * @param days
-	 * @param date
-	 * @return
+	 * Add days to date in a safe way. This takes care of adding days to leap year/new year.
+	 * @param days Days to be added. Cannot be negative
+	 * @param date Current date. Cannot be null.
+	 * @return new date after adding the days
+	 * @throws IllegalArgumentException if parameter conditions are not met.
 	 */
 	public static Date addDaysToDate(int days, Date date){
 	    if(days < 0){
@@ -95,4 +100,22 @@ public class DateUtility {
 	    dateTime = dateTime.plusDays(days);
 	    return dateTime.toDate();
 	}
+
+	/**
+	 * Gets the date, month, year, day in a specific format (Year,Month, Date, Day)
+	 * @param date date for which specific format is required. Cannot be null.
+	 * @return date string in specfic format (Year,Month, Date, Day).
+	 * @throws IllegalArgumentException if parameter conditions are not met.
+	 */
+	public static String getDateMonthYearDayFormat(Date date){
+	    if(date == null){
+		throw new IllegalArgumentException("Date cannot be null");
+	    }
+	    DateTime dateTime = new DateTime(date);
+	    DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd, EEEE").withLocale(Locale.US);
+	    return formatter.print(dateTime);
+	}
+
+
+
 }

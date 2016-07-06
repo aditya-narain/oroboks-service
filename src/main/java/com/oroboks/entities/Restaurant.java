@@ -1,5 +1,6 @@
 package com.oroboks.entities;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -7,13 +8,14 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Entity for Restaurant
@@ -59,9 +61,9 @@ public class Restaurant extends BaseEntity {
     @Column(name = "IS_ACTIVE")
     private Integer isActive;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "ORO_CUISINE_RESTAURANTS", joinColumns = @JoinColumn(name = "REST_UUID"), inverseJoinColumns = @JoinColumn(name = "CUISINE_UUID"))
-    private Set<Cuisine> cuisine;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy="restaurant")
+    private Set<Combo> combos = new HashSet<Combo>();
+
     /**
      * Default constructor for Restaurant
      */
@@ -232,23 +234,35 @@ public class Restaurant extends BaseEntity {
     }
 
     /**
-     * Returns set of {@link Cuisine} availaible in the restaurant
-     * @return set of {@link Cuisine} availaible in the restaurant
+     * Sets the set of {@link Combo}
+     * @param combos non-null, non-empty set of {@link Combo}
+     * @throws IllegalArgumentException if parameter conditions are not met.
      */
-    public Set<Cuisine> getCuisine() {
-	return cuisine;
+    public void setCombos(Set<Combo> combos) {
+	if(combos == null || combos.isEmpty()){
+	    throw new IllegalArgumentException("cuisine cannot be null or empty");
+	}
+	this.combos = combos;
     }
 
     /**
-     * Sets the set of {@link Cuisine}
-     * @param cuisine non-null, non-empty set of {@link Cuisine}
+     * Sets the combos availaible in the restaurant.
+     * @param combo non-null {@link Combo}.
+     * @throws IllegalArgumentException if parameter conditions are not met.
      */
-    public void setCuisine(Set<Cuisine> cuisine) {
-	if(cuisine == null || cuisine.isEmpty()){
-	    throw new IllegalArgumentException("cuisine cannot be null or empty");
+    @JsonIgnore
+    public void setCombo(Combo combo){
+	if(combo == null){
+	    throw new IllegalArgumentException("combos cannot be null");
 	}
-	this.cuisine = cuisine;
+	this.combos.add(combo);
     }
 
-
+    /**
+     * Returns the set of {@link Combo}.
+     * @return set of {@link Combo} availaible in the restaurant.
+     */
+    public Set<Combo> getCombos(){
+	return combos;
+    }
 }

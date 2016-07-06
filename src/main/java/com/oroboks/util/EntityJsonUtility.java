@@ -10,7 +10,7 @@ import javax.ws.rs.core.UriInfo;
 import com.oroboks.LocationResource;
 import com.oroboks.RestaurantResource;
 import com.oroboks.UserResource;
-import com.oroboks.entities.Cuisine;
+import com.oroboks.entities.Combo;
 import com.oroboks.entities.Location;
 import com.oroboks.entities.Restaurant;
 import com.oroboks.entities.User;
@@ -141,6 +141,49 @@ public class EntityJsonUtility {
 
     }
 
+    /**
+     * Result map for getting Combos
+     * @param restaurant {@link Restaurant}, cannot be null.
+     * @param datesAvailaible dates combo is availaible. Cannot be null or empty.
+     * @param combo {@link Combo}, cannot be null.
+     * @param uriInfo {@link UriInfo uriinfo} provides access to application and
+     *            request URI information. Cannot be null
+     * @return Map for combo results.
+     * @throws IllegalArgumentException if parameter conditions are not met.
+     */
+    public static Map<String, Object> getComboResultsMap(Restaurant restaurant,
+	    List<String> datesAvailaible, Combo combo, UriInfo uriInfo) {
+	if(restaurant == null){
+	    throw new IllegalArgumentException("restaurant cannot be null");
+	}
+	if(datesAvailaible == null || datesAvailaible.isEmpty()){
+	    throw new IllegalArgumentException("datesAvailaible cannot be null or empty");
+	}
+	if(combo == null){
+	    throw new IllegalArgumentException("combo cannot be null or empty");
+	}
+	if(uriInfo == null){
+	    throw new IllegalArgumentException("uriInfo cannot be null or empty");
+	}
+	Map<String, Object> resultMap = new HashMap<String, Object>();
+	resultMap.put("id", combo.getUUID());
+	resultMap.put("name", combo.getComboName());
+	resultMap.put("image", combo.getComboImage());
+	resultMap.put("mainDish", combo.getMainDish());
+	resultMap.put("sideDish", combo.getSideDish());
+	resultMap.put("summary", combo.getComboSummary());
+	resultMap.put("availaibleDates", datesAvailaible);
+	Map<String, Object> restaurantMap = new HashMap<String, Object>();
+	restaurantMap.put("restaurantName", restaurant.getName());
+	restaurantMap.put("restaurantwebsite", restaurant.getUrl());
+	restaurantMap.put("link", uriInfo.getBaseUriBuilder().path(RestaurantResource.class)
+		.path(restaurant.getUUID()).build().toString());
+	resultMap.put("restaurant", restaurantMap);
+	resultMap.put("price", combo.getComboPrice());
+	resultMap.put("ingredients", combo.getIngredients());
+	return resultMap;
+    }
+
 
     /**
      * Return result map for restaurant entities
@@ -169,11 +212,6 @@ public class EntityJsonUtility {
 	resultMap.put("contact_number", restaurant.getContact());
 	String profilePicUrl = uriInfo.getBaseUriBuilder().path(RestaurantResource.class).path("images").path(restaurant.getIcon()).build().toString();
 	resultMap.put("profile_pic_url", profilePicUrl);
-	List<String> cuisines = new ArrayList<String>(restaurant.getCuisine().size());
-	for(Cuisine cuisine : restaurant.getCuisine()){
-	    cuisines.add(cuisine.getCuisine().toLowerCase());
-	}
-	resultMap.put("cuisines", cuisines);
 	//TODO: Add combos availaible for the restaurant.
 	List<Object> linksList = new ArrayList<Object>();
 	String href = uriInfo.getBaseUriBuilder().path(RestaurantResource.class)

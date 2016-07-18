@@ -35,5 +35,39 @@ public class FormatterUtilityTest {
 	Assert.assertEquals(10.12234568, roundValue,0.00000000);
     }
 
+    /**
+     * Test {@link FormatterUtility#normalizeString(String)} when value passed is null.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testNormalizeString_NullParameter(){
+	FormatterUtility.normalizeString((String) null);
+    }
+
+    /**
+     * Test {@link FormatterUtility#normalizeString(String)} when value passed is more than one word.
+     */
+    @Test
+    public void testNormalizeString(){
+	String normalizedString = FormatterUtility.normalizeString("hello cuisine indian");
+	Assert.assertEquals("Hello Cuisine Indian", normalizedString);
+    }
+
+    /**
+     * Test {@link FormatterUtility#normalizeString(String)} when value passed is empty string
+     */
+    @Test
+    public void testNormalizeString_EmptyString(){
+	Assert.assertEquals("", FormatterUtility.normalizeString(" "));
+    }
+
+    /**
+     * Test {@link FormatterUtility#normalizeString(String)} when value passed is one word.
+     */
+    @Test
+    public void testNormalizeString_singleWord(){
+	Assert.assertEquals("Indian", FormatterUtility.normalizeString("indian"));
+    }
+
+
 
 }

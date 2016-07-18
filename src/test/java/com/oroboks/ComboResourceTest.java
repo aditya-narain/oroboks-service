@@ -106,7 +106,7 @@ public class ComboResourceTest {
 	String dateString = "2020-11-21";
 	Mockito.when(mockComboHistory.getComboServingDate()).thenReturn(sd.parse(dateString));
 	Mockito.when(mockCombo.getCuisines()).thenReturn(Collections.singleton(mockCuisine));
-	Mockito.when(mockCuisine.getCuisine()).thenReturn("Indian");
+	Mockito.when(mockCuisine.getCuisine()).thenReturn("indian");
 	Mockito.when(mockCombo.getComboName()).thenReturn("Combo1");
 	Mockito.when(mockCombo.getComboImage()).thenReturn("image1");
 	Mockito.when(mockCombo.getMainDish()).thenReturn("Main Dish");
@@ -121,8 +121,8 @@ public class ComboResourceTest {
 	Mockito.when(mockCombo.getIngredients()).thenReturn("Ingredients");
 	Map<String, List<Object>> expectedResult = (Map<String, List<Object>>) comboResource.getComboResultsMap(coordinate, mockUriInfo).get("combos");
 	Assert.assertEquals(expectedResult.size(), 1);
-	Assert.assertTrue(expectedResult.containsKey("indian"));
-	List<Object> combosLists = expectedResult.get("indian");
+	Assert.assertTrue(expectedResult.containsKey("Indian"));
+	List<Object> combosLists = expectedResult.get("Indian");
 	Assert.assertEquals(combosLists.size(), 1);
 	Map<String, Object> comboObject = (Map<String, Object>) combosLists.get(0);
 	Assert.assertEquals(comboObject.get("id"), "1");

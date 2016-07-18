@@ -161,7 +161,7 @@ Data to be passed:
 ```json 
 {
     "combos": {
-        "indian": [
+        "Indian": [
             {
                 "ingredients": "SarsoKaSaag, Panner Kofta,Onion, Tomatoes,Chilli",
                 "summary": "India taste brought to US",

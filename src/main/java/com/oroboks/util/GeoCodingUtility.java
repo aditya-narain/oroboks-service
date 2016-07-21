@@ -23,6 +23,7 @@ import com.oroboks.util.GeoLocationCoordinateUtility.LocationCoordinate;
 public class GeoCodingUtility {
     private static final Logger LOGGER = Logger.getLogger(GeoCodingUtility.class
 	    .getSimpleName());
+    // TODO: Change here to add env entry for Google secret key.
     private final String GOOGLE_KEY_PROPERTY = "/properties/apiKeys.properties";
     private static String apiKey;
     private static GeoCodingUtility geoCodingInstance;

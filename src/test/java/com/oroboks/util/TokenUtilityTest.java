@@ -15,6 +15,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.oroboks.util.TokenUtility.OROSecretReader;
+
 /**
  * Test for {@link TokenUtility}
  * @author Aditya Narain
@@ -29,6 +31,9 @@ public class TokenUtilityTest {
     @Mock
     private Cookie mockCookie;
 
+    @Mock
+    private OROSecretReader mockOroSecret;
+
     private TokenUtility utility;
 
     /**
@@ -36,7 +41,8 @@ public class TokenUtilityTest {
      */
     @Before
     public void setup(){
-	utility = TokenUtility.getInstance();
+	Mockito.when(mockOroSecret.getOROSecretKey()).thenReturn("abc@123");
+	utility = TokenUtility.getInstance(mockOroSecret);
     }
 
     @Test(expected = IllegalArgumentException.class)

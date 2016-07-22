@@ -9,11 +9,8 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,51 +23,28 @@ import javax.ws.rs.core.NewCookie;
  * @author Aditya Narain
  */
 public class TokenUtility {
-
     private static final Logger LOGGER = Logger.getLogger(TokenUtility.class
 	    .getSimpleName());
-    private final String AUTH_KEY_PROPERTY = "/properties/apiKeys.properties";
     private final String issuer = "com.oroboks.service";
     private final String tokenKey = "Token";
     private static TokenUtility authUtilityInstance;
-    private String secretKey;
+    private final String secretKey;
     /**
      * Private Instance of TokenUtility
      */
-    private TokenUtility(){
-	Properties properties = new Properties();
-	InputStream input = null;
-	try{
-	    input = TokenUtility.class.getResourceAsStream(AUTH_KEY_PROPERTY);
-	    if(input == null){
-		throw new IllegalArgumentException("Unable to find Properties file");
-	    }
-
-	    // load a properties file from class path
-	    properties.load(input);
-	    secretKey = properties.getProperty("oroApiKey");
-	}
-	catch(IOException exception){
-	    LOGGER.log(Level.SEVERE, "Error processing Input key. Error Trace"+ exception);
-	}
-	finally{
-	    if(input!=null){
-		try {
-		    input.close();
-		}
-		catch (IOException e) {
-		    LOGGER.log(Level.SEVERE, "Error closing InputStream"+ e);
-		}
-	    }
-	}
+    private TokenUtility(OROSecretReader secretReader){
+	secretKey = secretReader.getOROSecretKey();
     }
     /**
      * Gets the Singleton Instance of {@link GeoCodingUtility} class.
      * @return singleton instance of {@link GeoCodingUtility}
      */
     public static TokenUtility getInstance(){
+	return getInstance(new OROSecretReader());
+    }
+    static TokenUtility getInstance(OROSecretReader secretReader){
 	if(authUtilityInstance == null){
-	    authUtilityInstance = new TokenUtility();
+	    authUtilityInstance = new TokenUtility(secretReader);
 	}
 	return authUtilityInstance;
     }
@@ -170,6 +144,11 @@ public class TokenUtility {
 	    return null;
 	}
 	return id;
+    }
+    static class OROSecretReader{
+	public String getOROSecretKey(){
+	    return System.getenv("ORO_API_KEY");
+	}
     }
 
 }

@@ -1,9 +1,6 @@
 package com.oroboks.util;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,39 +20,13 @@ import com.oroboks.util.GeoLocationCoordinateUtility.LocationCoordinate;
 public class GeoCodingUtility {
     private static final Logger LOGGER = Logger.getLogger(GeoCodingUtility.class
 	    .getSimpleName());
-    // TODO: Change here to add env entry for Google secret key.
-    private final String GOOGLE_KEY_PROPERTY = "/properties/apiKeys.properties";
     private static String apiKey;
     private static GeoCodingUtility geoCodingInstance;
     /**
      * Private Instance of GeoCodingUtility
      */
     private GeoCodingUtility(){
-	Properties properties = new Properties();
-	InputStream input = null;
-	try{
-	    input = GeoCodingUtility.class.getResourceAsStream(GOOGLE_KEY_PROPERTY);
-	    if(input == null){
-		throw new IllegalArgumentException("Unable to find Properties file");
-	    }
-
-	    // load a properties file from class path
-	    properties.load(input);
-	    apiKey = properties.getProperty("googleApiKey");
-	}
-	catch(IOException exception){
-	    LOGGER.log(Level.SEVERE, "Error processing Input key. Error Trace"+ exception);
-	}
-	finally{
-	    if(input!=null){
-		try {
-		    input.close();
-		}
-		catch (IOException e) {
-		    LOGGER.log(Level.SEVERE, "Error closing InputStream"+ e);
-		}
-	    }
-	}
+	apiKey = System.getenv("GOOGLE_API_KEY");
     }
     /**
      * Gets the Singleton Instance of {@link GeoCodingUtility} class.

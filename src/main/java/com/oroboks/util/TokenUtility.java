@@ -145,6 +145,22 @@ public class TokenUtility {
 	}
 	return id;
     }
+
+    /**
+     * Verifies if secret key is authentic.
+     * 
+     * @param key
+     *            oro secret key given by the user. Cannot be null or empty.
+     * @return <code>true</code> if key matches the oroboks secret key else
+     *         return <code>false</code>.
+     * @throws IllegalArgumentException if parameter conditions are not met
+     */
+    public boolean isAuthenticSecretKey(String key){
+	if(key == null || key.trim().isEmpty()){
+	    throw new IllegalArgumentException("oro key cannot be null or empty");
+	}
+	return secretKey.equals(key);
+    }
     static class OROSecretReader{
 	public String getOROSecretKey(){
 	    return System.getenv("ORO_API_KEY");

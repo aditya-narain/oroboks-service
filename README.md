@@ -13,8 +13,8 @@
   * [GET Request](https://github.com/aditya-narain/oroboks-service#get-request)
 
 ## User Information Retrieval 
-##### GET Requests :  
-`/users` : Fetches current *active* user (according to Coookie value) in the specified JSON format. Returns 403 if cookie is tried to be changed/mishandled/expires. 
+##### GET Requests :
+`/users` : Fetches current *active* user (according to Coookie value) in the specified JSON format. Returns 403 if cookie is tried to be changed/mishandled/expires. If cookie does not have the token, 403 is returned.       
 `/users/{userId}` :  Fetches user with primary id of the user(UUID generated from database).   
 `/users/deactivate` : Deactivates the current user saved in the cookie. Returns 200 OK, if user is successfully deactivated. Will return 304(No Modified content) if user associated with the emailid is already deactivated. Returns 403 if cookie is tried to be changed/mishandled/expires.  
 
@@ -57,10 +57,20 @@
 T.B.D: What other things we can chip in.  
 
 ##### POST  Request:  
-`/users` : Will add the user specified in the content.   
-`/users/getToken?emailId=<EmailId>`: This should be called right after user successfully logs in. This request returns the user information with tokenId in the cookie only if there secured connection. It returns 500, if user does not exist in the database. 
-Example of this request: `/users/getToken?emailId=abc@gmail.com`
 
+`/users/getToken`: This should be called right after user successfully logs in. This request returns the user information with tokenId in the cookie only if there secured connection. It returns 500, if user does not exist in the database.    
+Example of this request: `/users/getToken`    
+*The content for adding user will be provided in the JSON format. Hence be sure of following:*  
+`Content-Type: application/json`  
+Data to be passed:
+```
+{
+  "userId":"abc@gmail.com",
+  "apiSecretKey":"abc@123"
+}
+```
+
+`/users` : Will add the user specified in the content.   
 *The content for adding user will be provided in the JSON format. Hence be sure of following:*  
 `Content-Type: application/json`  
 

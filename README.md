@@ -62,14 +62,14 @@ T.B.D: What other things we can chip in.
 Example of this request: `/users/getToken?emailId="abc@xyz.com"`    
 *The content for adding user will be provided in the JSON format. Hence be sure of following:*  
 `Content-Type: application/json`   
-Secret key needs to passed in the HEADER so would be something like :
-Authorization:SecretKey@123  
+Secret key needs to passed in the HEADER so would be something like:    
+`Authorization:SecretKey@123`      
 
 `/users` : Will add the user specified in the content.   
 *The content for adding user will be provided in the JSON format. Hence be sure of following:*  
 `Content-Type: application/json`   
-Secret key needs to passed in the HEADER so would be something like :
-Authorization:SecretKey@123
+Secret key needs to passed in the HEADER so would be something like:    
+`Authorization:SecretKey@123`     
 // Be sure of case-sensitive for keys  
 Data to be passed:  
 ```

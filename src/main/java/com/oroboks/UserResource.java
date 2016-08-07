@@ -12,11 +12,13 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -28,7 +30,6 @@ import com.oroboks.dao.DAO;
 import com.oroboks.entities.Location;
 import com.oroboks.entities.User;
 import com.oroboks.entities.UserLocation;
-import com.oroboks.entities.UserOroSecretKey;
 import com.oroboks.exception.SaveException;
 import com.oroboks.util.EntityJsonUtility;
 import com.oroboks.util.GeoCodingUtility;
@@ -136,29 +137,39 @@ public class UserResource {
 
     /**
      * Creates and returns new token id. This path is called when user signs In.<br/>
-     * Here {@link UserOroSecretKey} object is taken which validates the orokey.
-     * If secretKey does not match {@link HttpServletResponse#SC_FORBIDDEN} is
-     * returned else user token is generated in the cookie.
+     * User entered secret key is taken from Authorization header that is
+     * validated against the orokey. If secretKey does not match
+     * {@link HttpServletResponse#SC_FORBIDDEN} is returned else user token is
+     * generated in the cookie.<br/>
      * 
-     * @param userOroSecretKey
-     *            consumer created {@link UserOroSecretKey} object.Cannot be
-     *            null.
+     * @param secretKey
+     *            secret key entered by user in the Authorization Header. Cannot be null or
+     *            empty.
+     * @param userId
+     *            email id of the user. Cannot be null or empty.
+     * @throws IllegalArgumentException
+     *             if parameter conditions are not met.
      * @return {@link Response} with user details with new cookie.
      */
     @POST
     @Path("/getToken")
-    public Response createAndReturnToken(UserOroSecretKey userOroSecretKey){
-	if(userOroSecretKey == null){
+    public Response createAndReturnToken(@QueryParam("emailId") String userId,
+	    @HeaderParam("Authorization") String secretKey) {
+	if(secretKey == null || secretKey.trim().isEmpty()){
 	    LOGGER.log(Level.SEVERE,"userOroSecretKey cannot be null or empty");
 	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).build();
 	}
-	if(!TOKEN_INSTANCE.isAuthenticSecretKey(userOroSecretKey.getApiSecretKey())){
+	if(userId == null || userId.trim().isEmpty()){
+	    LOGGER.log(Level.SEVERE,"userId cannot be null or empty");
+	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).build();
+	}
+	if(!TOKEN_INSTANCE.isAuthenticSecretKey(secretKey.trim())){
 	    LOGGER.log(Level.SEVERE, "invalid oro api key");
 	    return Response.status(HttpServletResponse.SC_FORBIDDEN).build();
 	}
 	List<User> activeUsers = new ArrayList<User>();
 	Map<String, Object> filterEntitesByEmailMap = new HashMap<String, Object>();
-	filterEntitesByEmailMap.put("emailId", userOroSecretKey.getUserId());
+	filterEntitesByEmailMap.put("emailId", userId.toLowerCase());
 	activeUsers = userDAO.getEntitiesByField(filterEntitesByEmailMap);
 	if(activeUsers.isEmpty()){
 	    LOGGER.log(Level.SEVERE, "User does not exist in database");
@@ -182,20 +193,25 @@ public class UserResource {
      * POST the {@link User user} provided.
      * 
      * @param user
-     *            , User to be added. Cannot be null
+     *            {@link User} to be added.
+     * @param secretKey
+     *            secret key entered by user in the Authorization Header. Cannot be null or
+     *            empty.
      * @return {@link Response} when user is persisted in the database.
      * @throws SaveException
      *             if there is an exception caught while saving user in the
      *             database.
      */
     @POST
-    public Response addUserAndReturnToken(User user) throws SaveException {
-	if (user == null) {
-	    LOGGER.log(Level.SEVERE, "user cannot be null");
+    public Response addUserAndReturnToken(User user, @HeaderParam("Authorization") String secretKey) throws SaveException {
+	if(user == null){
+	    LOGGER.log(Level.SEVERE,"user cannot be null or empty");
 	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).build();
 	}
-	if (user.getUserId() == null || user.getUserId().trim().isEmpty()) {
-	    throw new SaveException("userId cannot be null");
+
+	if(!TOKEN_INSTANCE.isAuthenticSecretKey(secretKey)){
+	    LOGGER.log(Level.SEVERE, "invalid oro api key");
+	    return Response.status(HttpServletResponse.SC_FORBIDDEN).build();
 	}
 	List<User> users = getUsersWithEmailId(user.getUserId());
 	// Check if user already exists in database. If user exists, savedUser

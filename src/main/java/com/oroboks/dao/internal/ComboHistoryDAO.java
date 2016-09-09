@@ -86,12 +86,11 @@ public class ComboHistoryDAO implements DAO<ComboHistory> {
 		}
 		query = entityManager.createNamedQuery(getWeekCombos);
 		DateTime currentDate = new DateTime();
-		Date oneDayAfterCurrentDate = DateUtility.addDaysToDate(1,
-			currentDate.toDate());
-		// Add 1 week to next day of current Date. So from currentDate we add 1 i.e 1+7Days
+		Date dayAfterCurrentDate = DateUtility.addHoursToDate(12,currentDate.toDate());
+		// Add 12 hours to current Date. So from endDate we assume 8 days i.e 1+7Days
 		Date endTargetDate = DateUtility.addDaysToDate(
 			8, currentDate.toDate());
-		query.setParameter("currentDate", oneDayAfterCurrentDate);
+		query.setParameter("currentDate", dayAfterCurrentDate);
 		query.setParameter("targetDate", endTargetDate);
 		query.setParameter("combosList", comboListsFromMap);
 		break;

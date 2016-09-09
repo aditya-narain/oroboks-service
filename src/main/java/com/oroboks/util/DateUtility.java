@@ -56,12 +56,12 @@ public class DateUtility {
 	}
 
 	/**
-	 * Converts Date to MySQL Date
-	 * @param date Date to be converted to mysql date format. Cannot be null or empty
-	 * @return converted mysql date. Will return null if exception is returned
+	 * Converts Sting to Date object
+	 * @param date Date to be converted from String to Date object. Cannot be null or empty
+	 * @return Date object. Will return null if exception is returned while parsing.
 	 * @throws IllegalArgumentException if parameter conditions are not met.
 	 */
-	public static java.sql.Date convertToMySqlDateFormat(String date){
+	public static Date convertStringToDateFormat(String date){
 
 	    if(date == null || date.trim().isEmpty()){
 		throw new IllegalArgumentException("date cannot be null or empty");
@@ -73,8 +73,7 @@ public class DateUtility {
 	    }
 	    SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
 	    try{
-		java.util.Date utilDateFormat = formatter.parse(date);
-		return new java.sql.Date(utilDateFormat.getTime());
+		return formatter.parse(date);
 	    }
 	    catch(ParseException exception){
 		LOGGER.log(Level.SEVERE,"ParseException occured while parsing date :"+exception);
@@ -102,6 +101,25 @@ public class DateUtility {
 	}
 
 	/**
+	 * Add hours to date in a safe way. This takes care of adding days to leap year/new year.
+	 * @param hours hours to be added. Cannot be negative
+	 * @param date Current date. Cannot be null.
+	 * @return new date after adding the days
+	 * @throws IllegalArgumentException if parameter conditions are not met.
+	 */
+	public static Date addHoursToDate(int hours, Date date){
+	    if(hours < 0){
+		throw new IllegalArgumentException("days cannot be negative");
+	    }
+	    if(date == null){
+		throw new IllegalArgumentException("Date cannot be null");
+	    }
+	    DateTime dateTime = new DateTime(date);
+	    dateTime = dateTime.plusHours(hours);
+	    return dateTime.toDate();
+	}
+
+	/**
 	 * Gets the date, month, year, day in a specific format (Year,Month, Date, Day)
 	 * @param date date for which specific format is required. Cannot be null.
 	 * @return date string in specfic format (Year,Month, Date, Day).
@@ -114,6 +132,44 @@ public class DateUtility {
 	    DateTime dateTime = new DateTime(date);
 	    DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd, EEEE").withLocale(Locale.US);
 	    return formatter.print(dateTime);
+	}
+
+	/**
+	 * Model for holding date ranges.
+	 * @author Aditya Narain
+	 *
+	 */
+	public static class DateRange{
+	    private Date startDate;
+	    private Date endDate;
+	    public DateRange(Date startDate, Date endDate){
+		if(startDate == null){
+		    throw new IllegalArgumentException("startDate cannot be null");
+		}
+		if(endDate == null){
+		    throw new IllegalArgumentException("endDate cannot be null");
+		}
+		this.startDate = startDate;
+		this.endDate = endDate;
+	    }
+	    public Date getStartDate(){
+		return startDate;
+	    }
+	    public void setStartDate(Date startDate){
+		if(startDate == null){
+		    throw new IllegalArgumentException("startDate cannot be null");
+		}
+		this.startDate = startDate;
+	    }
+	    public Date getEndDate(){
+		return endDate;
+	    }
+	    public void setEndDate(Date endDate){
+		if(endDate == null){
+		    throw new IllegalArgumentException("endDate cannot be null");
+		}
+		this.endDate = endDate;
+	    }
 	}
 
 

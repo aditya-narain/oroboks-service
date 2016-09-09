@@ -1,6 +1,6 @@
 package com.oroboks.entities;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -183,7 +183,7 @@ public class User extends BaseEntity {
 	    throw new IllegalArgumentException(
 		    "birthdate cannot be null or empty");
 	}
-	this.birthDate = DateUtility.convertToMySqlDateFormat(birthDate);
+	this.birthDate = DateUtility.convertStringToDateFormat(birthDate);
     }
 
     /**

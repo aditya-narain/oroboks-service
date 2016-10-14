@@ -7,13 +7,17 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
 import com.oroboks.dao.DAO;
+import com.oroboks.dao.internal.ComboDAO;
 import com.oroboks.dao.internal.ComboHistoryDAO;
 import com.oroboks.dao.internal.LocationDAO;
+import com.oroboks.dao.internal.OrderDAO;
 import com.oroboks.dao.internal.RestaurantDAO;
 import com.oroboks.dao.internal.UserDAO;
 import com.oroboks.dao.internal.UserLocationDAO;
+import com.oroboks.entities.Combo;
 import com.oroboks.entities.ComboHistory;
 import com.oroboks.entities.Location;
+import com.oroboks.entities.Order;
 import com.oroboks.entities.Restaurant;
 import com.oroboks.entities.User;
 import com.oroboks.entities.UserLocation;
@@ -39,6 +43,9 @@ public class GuiceServlet extends GuiceServletContextListener {
 		bind(new TypeLiteral<DAO<Location>>() {}).to(LocationDAO.class);
 		bind(new TypeLiteral<DAO<Restaurant>>(){}).to(RestaurantDAO.class);
 		bind(new TypeLiteral<DAO<ComboHistory>>(){}).to(ComboHistoryDAO.class);
+		bind(new TypeLiteral<DAO<Order>>(){}).to(OrderDAO.class);
+		bind(new TypeLiteral<DAO<Combo>>(){}).to(ComboDAO.class);
+
 		bind(JacksonObjectMapperProvider.class).in(Scopes.SINGLETON);
 		bind(
 			forName("com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"))

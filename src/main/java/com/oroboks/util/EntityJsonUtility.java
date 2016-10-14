@@ -1,17 +1,20 @@
 package com.oroboks.util;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.core.UriInfo;
 
+import com.oroboks.ComboResource;
 import com.oroboks.LocationResource;
 import com.oroboks.RestaurantResource;
 import com.oroboks.UserResource;
 import com.oroboks.entities.Combo;
 import com.oroboks.entities.Location;
+import com.oroboks.entities.Order;
 import com.oroboks.entities.Restaurant;
 import com.oroboks.entities.User;
 import com.oroboks.entities.UserLocation;
@@ -220,6 +223,60 @@ public class EntityJsonUtility {
 	linksList.add(otherLinks.getRelationshipMap());
 	resultMap.put("links", linksList);
 	return resultMap;
+    }
+
+    /**
+     * Retrieves the map with orders w.r.t order Date.
+     * @param ordersList list of {@link Order}. Cannot be null.
+     * @param uriInfo {@link UriInfo uriinfo} provides access to application and
+     *            request URI information. Cannot be null
+     * @return map of orders w.r.t order date. If order list is empty, empty list is returned.
+     * @throws IllegalArgumentException if parameter conditions are not met.
+     */
+    public static Map<Date, Object> getOrderResultsMap(List<Order> ordersList, UriInfo uriInfo){
+	if(ordersList == null){
+	    throw new IllegalArgumentException("ordersLists cannot be null");
+	}
+	Map<Date, Object> resultMap = new HashMap<Date, Object>();
+	if(ordersList.isEmpty()){
+	    return resultMap;
+	}
+	for(Order eachOrder: ordersList){
+	    @SuppressWarnings("unchecked")
+	    List<Object> orderMapLists = (List<Object>) ((resultMap
+		    .containsKey(eachOrder.getOrderDate())) ? resultMap
+			    .get(eachOrder.getOrderDate()) : new ArrayList<Object>());
+	    orderMapLists.add(getOrderMap(eachOrder, uriInfo));
+	    resultMap.put(eachOrder.getOrderDate(), orderMapLists);
+	}
+
+	return resultMap;
+    }
+
+    private static Map<String, Object> getOrderMap(Order order, UriInfo uriInfo){
+	Map<String, Object> result = new HashMap<String, Object>();
+	result.put("day", order.getOrderDate().toString());
+	result.put("comboName", order.getComboId().getComboName());
+	result.put("mainDish", order.getComboId().getMainDish());
+	result.put("sideDish", order.getComboId().getSideDish());
+	result.put("summary", order.getComboId().getComboSummary());
+	result.put("price", order.getComboId().getComboPrice());
+	String userLink =  uriInfo.getBaseUriBuilder().path(UserResource.class)
+		.path(order.getUserId().getUUID()).build().toString();
+	EntityLinks userEntity = new EntityLinks(userLink, "user");
+	String selfLink = uriInfo.getBaseUriBuilder().path(UserResource.class).path("currentusers").path("orders")
+		.path(order.getUUID()).build().toString();
+	EntityLinks selfEntity = new EntityLinks(selfLink, "self");
+	String comboImageLink = uriInfo.getBaseUriBuilder()
+		.path(ComboResource.class)
+		.path(order.getComboId().getComboImage()).build().toString();
+	EntityLinks comboImageEntity = new EntityLinks(comboImageLink, "comboImage");
+	List<Object> links = new ArrayList<Object>();
+	links.add(userEntity.getRelationshipMap());
+	links.add(selfEntity.getRelationshipMap());
+	links.add(comboImageEntity.getRelationshipMap());
+	result.put("links", links);
+	return result;
     }
 
     /**

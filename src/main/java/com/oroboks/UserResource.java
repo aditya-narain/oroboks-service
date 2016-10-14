@@ -1,6 +1,7 @@
 package com.oroboks;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,11 +27,20 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import net.spy.memcached.MemcachedClient;
+
+import org.joda.time.DateTime;
+
+import com.oroboks.cache.MemcacheHandler;
 import com.oroboks.dao.DAO;
+import com.oroboks.entities.Combo;
 import com.oroboks.entities.Location;
+import com.oroboks.entities.Order;
 import com.oroboks.entities.User;
 import com.oroboks.entities.UserLocation;
 import com.oroboks.exception.SaveException;
+import com.oroboks.util.DateUtility;
+import com.oroboks.util.DateUtility.DateRange;
 import com.oroboks.util.EntityJsonUtility;
 import com.oroboks.util.GeoCodingUtility;
 import com.oroboks.util.GeoLocationCoordinateUtility;
@@ -52,7 +62,12 @@ public class UserResource {
     private final DAO<User> userDAO;
     private final DAO<Location> locationDAO;
     private final DAO<UserLocation> userLocationDAO;
-    private final TokenUtility TOKEN_INSTANCE = TokenUtility.getInstance();
+    private final DAO<Order> orderDAO;
+    private final DAO<Combo> comboDAO;
+    private final MemcachedClient memcacheClient;
+    // Expiry Time set to 2 hours.
+    private final int EXPIRY_TIME = 60 * 60 * 2;
+    private final TokenUtility tokenInstance;
 
     /**
      * @param userDAO
@@ -61,13 +76,29 @@ public class UserResource {
      *            DAO for the location, Can never be null.
      * @param userLocationDAO
      *            DAO for the users location. Can never be null
+     * @param orderDAO
+     *            DAO for the order. Can never be null.
+     * @param comboDAO
+     *            DAO for combos. Can never be null.
      */
     @Inject
     public UserResource(DAO<User> userDAO, DAO<Location> locationDAO,
-	    DAO<UserLocation> userLocationDAO) {
+	    DAO<UserLocation> userLocationDAO, DAO<Order> orderDAO,
+	    DAO<Combo> comboDAO) {
+	this(userDAO, locationDAO, userLocationDAO, orderDAO, comboDAO,  MemcacheHandler
+		.getCacheClientConnection(), TokenUtility.getInstance());
+    }
+
+    UserResource(DAO<User> userDAO, DAO<Location> locationDAO,
+	    DAO<UserLocation> userLocationDAO, DAO<Order> orderDAO,
+	    DAO<Combo> comboDAO, MemcachedClient memcacheClient, TokenUtility tokenInstance){
 	this.userDAO = userDAO;
 	this.locationDAO = locationDAO;
 	this.userLocationDAO = userLocationDAO;
+	this.orderDAO = orderDAO;
+	this.comboDAO = comboDAO;
+	this.memcacheClient = memcacheClient;
+	this.tokenInstance = tokenInstance;
     }
 
     @Context
@@ -75,13 +106,17 @@ public class UserResource {
 
     /**
      * Returns the current User with the current token in the cookies
-     * @param httpHeaders represents the http header from where cookie is retrieved. Will never be null
+     * 
+     * @param httpHeaders
+     *            represents the http header from where cookie is retrieved.
+     *            Will never be null
      * @return current user.
      */
     @GET
-    public Response getUsers(@Context HttpHeaders httpHeaders){
-	String id = TOKEN_INSTANCE.getEntityIdFromHttpHeader(httpHeaders);
-	if(id == null || id.trim().isEmpty()){
+    @Path("/currentuser")
+    public Response getUsers(@Context HttpHeaders httpHeaders) {
+	String id = tokenInstance.getEntityIdFromHttpHeader(httpHeaders);
+	if (id == null || id.trim().isEmpty()) {
 	    return Response.status(HttpServletResponse.SC_FORBIDDEN).build();
 	}
 	return getUserWithId(id);
@@ -96,7 +131,7 @@ public class UserResource {
      * @return {@link Response} when GET statement is executed.
      */
     @GET
-    @Path("/{id}")
+    @Path("/currentuser/{id}")
     public Response getUserWithId(@PathParam("id") String userId) {
 	if (userId == null || userId.trim().isEmpty()) {
 	    throw new IllegalArgumentException("id cannot null or empty");
@@ -129,7 +164,7 @@ public class UserResource {
      *            updated
      */
     @PUT
-    @Path("/{id}")
+    @Path("/currentuser/{id}")
     public void updateUserWithId(@PathParam("id") String userId, User user) {
 	throw new UnsupportedOperationException(
 		"Update functionality currently does not exist");
@@ -143,8 +178,8 @@ public class UserResource {
      * generated in the cookie.<br/>
      * 
      * @param secretKey
-     *            secret key entered by user in the Authorization Header. Cannot be null or
-     *            empty.
+     *            secret key entered by user in the Authorization Header. Cannot
+     *            be null or empty.
      * @param userId
      *            email id of the user. Cannot be null or empty.
      * @throws IllegalArgumentException
@@ -155,15 +190,15 @@ public class UserResource {
     @Path("/getToken")
     public Response createAndReturnToken(@QueryParam("emailId") String userId,
 	    @HeaderParam("Authorization") String secretKey) {
-	if(secretKey == null || secretKey.trim().isEmpty()){
-	    LOGGER.log(Level.SEVERE,"userOroSecretKey cannot be null or empty");
+	if (secretKey == null || secretKey.trim().isEmpty()) {
+	    LOGGER.log(Level.SEVERE, "userOroSecretKey cannot be null or empty");
 	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).build();
 	}
-	if(userId == null || userId.trim().isEmpty()){
-	    LOGGER.log(Level.SEVERE,"userId cannot be null or empty");
+	if (userId == null || userId.trim().isEmpty()) {
+	    LOGGER.log(Level.SEVERE, "userId cannot be null or empty");
 	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).build();
 	}
-	if(!TOKEN_INSTANCE.isAuthenticSecretKey(secretKey.trim())){
+	if (!tokenInstance.isAuthenticSecretKey(secretKey.trim())) {
 	    LOGGER.log(Level.SEVERE, "invalid oro api key");
 	    return Response.status(HttpServletResponse.SC_FORBIDDEN).build();
 	}
@@ -171,21 +206,21 @@ public class UserResource {
 	Map<String, Object> filterEntitesByEmailMap = new HashMap<String, Object>();
 	filterEntitesByEmailMap.put("emailId", userId.toLowerCase());
 	activeUsers = userDAO.getEntitiesByField(filterEntitesByEmailMap);
-	if(activeUsers.isEmpty()){
+	if (activeUsers.isEmpty()) {
 	    LOGGER.log(Level.SEVERE, "User does not exist in database");
 	    return Response
 		    .status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
-		    .entity("User does not exist in database")
-		    .build();
+		    .entity("User does not exist in database").build();
 	}
 	User user = activeUsers.get(0);
-	String token = TOKEN_INSTANCE.generateJWTKey(user.getUUID());
-	NewCookie cookie = TOKEN_INSTANCE.createCookieWithToken(token);
+	String token = tokenInstance.generateJWTKey(user.getUUID());
+	NewCookie cookie = tokenInstance.createCookieWithToken(token);
 	List<Object> userMapList = new ArrayList<Object>();
 	userMapList.add(EntityJsonUtility.getUserResultsMap(user, uriInfo));
 	Map<String, Object> resultMap = new HashMap<String, Object>();
 	resultMap.put("Users", userMapList);
-	return Response.status(HttpServletResponse.SC_OK).entity(resultMap).cookie(cookie).build();
+	return Response.status(HttpServletResponse.SC_OK).entity(resultMap)
+		.cookie(cookie).build();
 
     }
 
@@ -195,21 +230,23 @@ public class UserResource {
      * @param user
      *            {@link User} to be added.
      * @param secretKey
-     *            secret key entered by user in the Authorization Header. Cannot be null or
-     *            empty.
+     *            secret key entered by user in the Authorization Header. Cannot
+     *            be null or empty.
      * @return {@link Response} when user is persisted in the database.
      * @throws SaveException
      *             if there is an exception caught while saving user in the
      *             database.
      */
     @POST
-    public Response addUserAndReturnToken(User user, @HeaderParam("Authorization") String secretKey) throws SaveException {
-	if(user == null){
-	    LOGGER.log(Level.SEVERE,"user cannot be null or empty");
+    public Response addUserAndReturnToken(User user,
+	    @HeaderParam("Authorization") String secretKey)
+		    throws SaveException {
+	if (user == null) {
+	    LOGGER.log(Level.SEVERE, "user cannot be null or empty");
 	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).build();
 	}
 
-	if(!TOKEN_INSTANCE.isAuthenticSecretKey(secretKey)){
+	if (!tokenInstance.isAuthenticSecretKey(secretKey)) {
 	    LOGGER.log(Level.SEVERE, "invalid oro api key");
 	    return Response.status(HttpServletResponse.SC_FORBIDDEN).build();
 	}
@@ -220,16 +257,17 @@ public class UserResource {
 	User savedUser = !users.isEmpty() ? null : userDAO.addEntity(user);
 	final String token;
 	NewCookie cookie = null;
-	if(savedUser != null){
-	    token = TOKEN_INSTANCE.generateJWTKey(savedUser.getUUID());
-	    cookie = TOKEN_INSTANCE.createCookieWithToken(token);
+	if (savedUser != null) {
+	    token = tokenInstance.generateJWTKey(savedUser.getUUID());
+	    cookie = tokenInstance.createCookieWithToken(token);
 	}
 	// Ensure cookie does not add token if user is already saved.
 	return (savedUser == null) ? Response
 		.status(HttpServletResponse.SC_ACCEPTED)
 		.entity("User could not be saved as it already exists in database or null")
 		.build()
-		: Response.status(HttpServletResponse.SC_CREATED).cookie(cookie).build();
+		: Response.status(HttpServletResponse.SC_CREATED)
+		.cookie(cookie).build();
     }
 
     /**
@@ -258,13 +296,15 @@ public class UserResource {
 	}
 	verifyLocation(location);
 	Location locationToSave = saveLocationInLowerCase(location);
-	if(locationToSave.getLatitude() == null || locationToSave.getLongitude() == null){
-	    return Response.status(HttpServletResponse.SC_NOT_IMPLEMENTED)
+	if (locationToSave.getLatitude() == null
+		|| locationToSave.getLongitude() == null) {
+	    return Response
+		    .status(HttpServletResponse.SC_NOT_IMPLEMENTED)
 		    .entity("Cannot add user location as error while retrieving location coordinates")
 		    .build();
 	}
-	String userId = TOKEN_INSTANCE.getEntityIdFromHttpHeader(httpHeaders);
-	if(userId == null || userId.trim().isEmpty()){
+	String userId = tokenInstance.getEntityIdFromHttpHeader(httpHeaders);
+	if (userId == null || userId.trim().isEmpty()) {
 	    return Response.status(HttpServletResponse.SC_FORBIDDEN).build();
 	}
 	UserLocation userLocation = new UserLocation();
@@ -309,17 +349,20 @@ public class UserResource {
     /**
      * DeActivates the {@link User user} with provided userId. Returns a 204 No
      * Content Status when deleted.
-     * @param httpHeaders represents the http header from where cookie is retrieved.
+     * 
+     * @param httpHeaders
+     *            represents the http header from where cookie is retrieved.
      *            Will never be null.
      * @return {@link Response} when user is deActivated and updated in the
      *         database.
      */
     @GET
-    @Path("/deactivate")
+    @Path("/currentuser/deactivate")
     public Response deleteUserWithId(@Context HttpHeaders httpHeaders) {
-	String userId = TOKEN_INSTANCE.getEntityIdFromHttpHeader(httpHeaders);
-	if(userId == null || userId.trim().isEmpty()){
-	    LOGGER.log(Level.SEVERE, "Cannot delete record as valid token is not present");
+	String userId = tokenInstance.getEntityIdFromHttpHeader(httpHeaders);
+	if (userId == null || userId.trim().isEmpty()) {
+	    LOGGER.log(Level.SEVERE,
+		    "Cannot delete record as valid token is not present");
 	    return Response.status(HttpServletResponse.SC_FORBIDDEN).build();
 	}
 	Map<String, Object> getEntitiesByFieldMap = new HashMap<String, Object>();
@@ -337,10 +380,89 @@ public class UserResource {
 	    return Response.status(HttpServletResponse.SC_NOT_MODIFIED)
 		    .entity("No Entities Deleted").build();
 	} else {
-	    return Response
-		    .status(HttpServletResponse.SC_OK)
+	    return Response.status(HttpServletResponse.SC_OK)
 		    .entity("User deActivated successfully").build();
 	}
+    }
+
+    /**
+     * Retrieves order for the currentuser. The order retrieved is for the week
+     * starting from currentDate.
+     * 
+     * @param httpHeaders
+     *            represents the http header from where cookie is retrieved.
+     *            Will never be null
+     * @return orders for the currentuser.
+     */
+    @GET
+    @Path("/currentuser/orders")
+    public Response getOrders(@Context HttpHeaders httpHeaders) {
+	String userId = tokenInstance.getEntityIdFromHttpHeader(httpHeaders);
+	if (userId == null || userId.trim().isEmpty()) {
+	    LOGGER.log(Level.SEVERE,
+		    "userUUID retrieved is null or empty. UnAuthorized access of API");
+	    return Response.status(HttpServletResponse.SC_FORBIDDEN)
+		    .entity("Forbidden to access API").build();
+	}
+	// Shows order from currentDate to currentDate + 7 days.
+	// The main reason for adding in 7 days because order can be made for
+	// maximum for 1 week.
+	Date currentDate = new DateTime().toDate();
+	DateRange dateRange = new DateRange(currentDate,
+		DateUtility.addDaysToDate(7, currentDate));
+	User user = getUserWithUserUUID(userId);
+	Map<String, Object> filterEntitiesMap = new HashMap<String, Object>();
+	filterEntitiesMap.put("userId", user);
+	filterEntitiesMap.put("dateRanges", dateRange);
+	List<Order> userOrderList = orderDAO
+		.getEntitiesByField(filterEntitiesMap);
+	Map<Date, Object> orderResultsMap = EntityJsonUtility
+		.getOrderResultsMap(userOrderList, uriInfo);
+	return Response.status(HttpServletResponse.SC_OK)
+		.entity(orderResultsMap).build();
+    }
+
+    /**
+     * This resource add order for the currentuser.
+     * 
+     * @param orders
+     *            List of {@link Order order} given by current user.
+     * @param httpHeaders
+     *            represents the http header from where cookie is retrieved.
+     *            Will never be null
+     * @return {@link Response} for order being created successfully.
+     */
+    @SuppressWarnings("unused")
+    @POST
+    @Path("/currentuser/orders")
+    public Response addUserOrders(List<Order> orders,
+	    @Context HttpHeaders httpHeaders) {
+	final String COMBO_KEY = "combos";
+	final String COMBO_ID_KEY = "comboid";
+	final String COMBO_QTY_KEY = "quantity";
+	final String COMBO_DATE = "date";
+	String userId = tokenInstance.getEntityIdFromHttpHeader(httpHeaders);
+	if (userId == null || userId.trim().isEmpty()) {
+	    return Response.status(HttpServletResponse.SC_UNAUTHORIZED)
+		    .entity("UnAuthorized access of API").build();
+	}
+	User user = getUserWithUserUUID(userId);
+	for (Order order : orders) {
+	    Combo combo = getComboWithId(order.getComboId());
+	    if (combo == null) {
+		LOGGER.log(Level.SEVERE,
+			"comboId is not present in combos table");
+		return Response.status(HttpServletResponse.SC_NOT_IMPLEMENTED)
+			.entity("ComboId not found").build();
+	    }
+	    order.setComboId(combo);
+	    order.setUserId(user);
+	    order.setIsActive(Status.ACTIVE.getStatus());
+	    Order orderAdded = orderDAO.addEntity(order);
+	}
+	return Response.status(HttpServletResponse.SC_CREATED)
+		.entity("{order created}").build();
+
     }
 
     private boolean hasDefaultLocation(User user) {
@@ -356,6 +478,14 @@ public class UserResource {
 
     }
 
+    private Combo getComboWithId(Combo combo) {
+	List<Combo> combos = new ArrayList<Combo>(1);
+	combos = comboDAO.getEntitiesByField(combo);
+	// Since comboId is going to be for one Combo, either combolist will be
+	// availaible or not
+	return (combos.isEmpty()) ? null : combos.get(0);
+    }
+
     /**
      * Retrieves users from database
      * 
@@ -368,6 +498,41 @@ public class UserResource {
 	getEntitiesByFieldMap.put("emailId", userId);
 	List<User> userList = userDAO.getEntitiesByField(getEntitiesByFieldMap);
 	return userList;
+    }
+
+    private User getUserWithUserUUID(String userId) {
+	boolean flag = false;
+	User user;
+	try {
+	    if (memcacheClient == null) {
+		user = null;
+	    } else {
+		user = (User) memcacheClient.get(userId);
+		flag = true;
+	    }
+	} catch (Exception e) {
+	    LOGGER.log(Level.SEVERE,
+		    "Error in memcacheClient connection. Still holding value.");
+	    LOGGER.log(Level.INFO, "Trying to shutdown again");
+	    memcacheClient.shutdown();
+	    flag = false;
+	    user = null;
+	}
+
+	if (user == null) {
+	    Map<String, Object> filterUserEntitiesByField = new HashMap<String, Object>();
+	    filterUserEntitiesByField.put("uuid", userId);
+	    List<User> userList = userDAO
+		    .getEntitiesByField(filterUserEntitiesByField);
+	    // user will be assigned
+	    user = (userList.isEmpty()) ? null : userList.get(0);
+	    // This check is performed because if memcacheclient is null then it
+	    // wont be added or else it is added to memcache.
+	    if (user != null && flag) {
+		memcacheClient.set(userId, EXPIRY_TIME, user);
+	    }
+	}
+	return user;
     }
 
     private boolean checkIfLocationExistsForUser(User user, Location location) {
@@ -413,7 +578,9 @@ public class UserResource {
 	location.setState(entity.getState().toLowerCase());
 	location.setCity(entity.getCity().toLowerCase());
 	location.setStreetAddress(entity.getStreetAddress().toLowerCase());
-	Location updatedLocation = GeoLocationCoordinateUtility.updateLocationWithCoordinates(location, GeoCodingUtility.getInstance());
+	Location updatedLocation = GeoLocationCoordinateUtility
+		.updateLocationWithCoordinates(location,
+			GeoCodingUtility.getInstance());
 	return updatedLocation;
     }
 

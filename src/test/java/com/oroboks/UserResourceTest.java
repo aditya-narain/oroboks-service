@@ -1,64 +1,77 @@
 package com.oroboks;
 
+import java.util.ArrayList;
+import java.util.Map;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+
+import junit.framework.Assert;
+import net.spy.memcached.MemcachedClient;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import com.oroboks.dao.DAO;
+import com.oroboks.entities.Combo;
+import com.oroboks.entities.Location;
+import com.oroboks.entities.Order;
+import com.oroboks.entities.User;
+import com.oroboks.entities.UserLocation;
+import com.oroboks.util.TokenUtility;
+
 
 /**
  * Test case for {@link UserResource}
  * @author Aditya Narain
  */
-//@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class UserResourceTest {
-    //    @Mock
-    //    private UserDAO userDAO;
-    //
-    //    @Mock
-    //    private LocationDAO locationDAO;
-    //
-    //    @Mock
-    //    private UserLocationDAO userLocationDAO;
-    //    static final URI BASE_URI = getBaseURI();
-    //    HttpServer server;
-    //    private static URI getBaseURI() {
-    //	return UriBuilder.fromUri( "http://localhost/" ).port( 9998 ).build();
-    //    }
-    //
-    //    /**
-    //     * Setup for starting server
-    //     * @throws IOException if an I/O exception occurs
-    //     */
-    //    @Before
-    //    public void startServer() throws IOException{
-    //	Injector injector = Guice.createInjector( new ServletModule() {
-    //	    @Override
-    //	    protected void configureServlets() {
-    //		bind(new TypeLiteral<DAO<User>>() {}).to(UserDAO.class);
-    //		bind(new TypeLiteral<DAO<UserLocation>>() {}).to(UserLocationDAO.class);
-    //		bind(new TypeLiteral<DAO<Location>>() {}).to(LocationDAO.class);
-    //	    }
-    //	});
-    //
-    //	ResourceConfig rc = new PackagesResourceConfig( "com.oroboks" );
-    //	IoCComponentProviderFactory ioc = new GuiceComponentProviderFactory( rc, injector );
-    //	server = GrizzlyServerFactory.createHttpServer( BASE_URI, rc, ioc );
-    //    }
-    //
-    //    /**
-    //     *  Teardown to stop server after test is run completely.
-    //     */
-    //    @After
-    //    public void tearDownServer(){
-    //	server.stop();
-    //    }
-    //
-    //    /**
-    //     * @throws IOException
-    //     */
-    //    @Test
-    //    public void getAllUsers() throws IOException{
-    //	Client client = Client.create( new DefaultClientConfig() );
-    //	WebResource service = client.resource( getBaseURI() );
-    //	ClientResponse reponse = service.path("/users").accept(MediaType.APPLICATION_JSON).get(ClientResponse.class);
-    //	String text = reponse.getEntity(String.class);
-    //    }
-    //
+    @Mock
+    private DAO<User> mockUserDAO;
+    @Mock
+    private DAO<Location> mockLocationDAO;
+    @Mock
+    private DAO<UserLocation> mockUserLocationDAO;
+    @Mock
+    private DAO<Order> mockOrderDAO;
+    @Mock
+    private DAO<Combo> mockComboDAO;
+    @Mock
+    private UriInfo mockUriInfo;
+    @Mock
+    private MemcachedClient mockMemcacheClient;
+    @Mock
+    private TokenUtility mocktokenUtility;
+    @Mock
+    private User user;
 
+    private UserResource userResource;
+
+    @Before
+    public void setup(){
+	userResource = new UserResource(mockUserDAO, mockLocationDAO, mockUserLocationDAO, mockOrderDAO, mockComboDAO, mockMemcacheClient, mocktokenUtility);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetUserWithId_nullUserId(){
+	userResource.getUserWithId((String) null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetUserWithId_EmptyUserId(){
+	userResource.getUserWithId("   ");
+    }
+
+    @Test
+    public void testGetUserWithId_NoContent(){
+	Mockito.when(mockUserDAO.getEntitiesByField(Mockito.isA(Map.class))).thenReturn(new ArrayList<User>());
+	Response response = userResource.getUserWithId("User@001");
+	Assert.assertEquals(204, response.getStatus());
+	Assert.assertEquals("{Users=[]}", response.getEntity().toString());
+    }
 }

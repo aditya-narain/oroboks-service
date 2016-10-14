@@ -56,12 +56,10 @@ public class UserLocationDAO implements DAO<UserLocation> {
 	    LOGGER.log(Level.SEVERE,
 		    "Exception caught while saving user location. More error:"
 			    + exception);
+	    throw new SaveException("Exception caught while saving userlocation. More Information:" + exception);
 
 	}
-	catch(SaveException e){
-	    LOGGER.log(Level.SEVERE, "Exception caught while saving userlocation. More Information:" + e);
-	}
-	return null;
+
     }
 
     private void verifySavingUserLocation(UserLocation entity) throws SaveException {

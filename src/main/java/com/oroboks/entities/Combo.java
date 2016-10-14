@@ -11,6 +11,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
@@ -25,6 +27,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 
 @Entity
+@NamedQueries({
+    @NamedQuery(name="combos.getCombos", query="select c from Combo c where c.uuid = :uuid")
+})
 @Table(name = "ORO_COMBOS")
 public class Combo extends BaseEntity {
 

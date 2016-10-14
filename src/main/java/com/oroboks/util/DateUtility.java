@@ -120,6 +120,43 @@ public class DateUtility {
 	}
 
 	/**
+	 * Subtract hours to date in a safe way. This takes care of adding days to leap year/new year.
+	 * @param hours hours to be added. Cannot be negative
+	 * @param date Current date. Cannot be null.
+	 * @return new date after adding the days
+	 * @throws IllegalArgumentException if parameter conditions are not met.
+	 */
+	public static Date subtractHoursToDate(int hours, Date date){
+	    if(hours < 0){
+		throw new IllegalArgumentException("days cannot be negative");
+	    }
+	    if(date == null){
+		throw new IllegalArgumentException("Date cannot be null");
+	    }
+	    DateTime dateTime = new DateTime(date);
+	    dateTime = dateTime.minusHours(hours);
+	    return dateTime.toDate();
+	}
+	/**
+	 * Subtract days to date in a safe way. This takes care of adding days to leap year/new year.
+	 * @param days hours to be added. Cannot be negative
+	 * @param date Current date. Cannot be null.
+	 * @return new date after adding the days
+	 * @throws IllegalArgumentException if parameter conditions are not met.
+	 */
+	public static Date subtractDaysToDate(int days, Date date){
+	    if(days < 0){
+		throw new IllegalArgumentException("days cannot be negative");
+	    }
+	    if(date == null){
+		throw new IllegalArgumentException("Date cannot be null");
+	    }
+	    DateTime dateTime = new DateTime(date);
+	    dateTime = dateTime.minusDays(days);
+	    return dateTime.toDate();
+	}
+
+	/**
 	 * Gets the date, month, year, day in a specific format (Year,Month, Date, Day)
 	 * @param date date for which specific format is required. Cannot be null.
 	 * @return date string in specfic format (Year,Month, Date, Day).
@@ -142,6 +179,13 @@ public class DateUtility {
 	public static class DateRange{
 	    private Date startDate;
 	    private Date endDate;
+
+	    /**
+	     * Date Ranges Constructor
+	     * @param startDate represent the start date, Cannot be null.
+	     * @param endDate represent the end date, Cannot be null.
+	     * @throws IllegalArgumentException if parameter conditions are not met.
+	     */
 	    public DateRange(Date startDate, Date endDate){
 		if(startDate == null){
 		    throw new IllegalArgumentException("startDate cannot be null");
@@ -152,18 +196,34 @@ public class DateUtility {
 		this.startDate = startDate;
 		this.endDate = endDate;
 	    }
+	    /**
+	     * @return start date. Cannot be null.
+	     */
 	    public Date getStartDate(){
 		return startDate;
 	    }
+	    /**
+	     * Sets the start date.
+	     * @param startDate start date.Cannot be null.
+	     * @throws IllegalArgumentException if parameter conditions are not met.
+	     */
 	    public void setStartDate(Date startDate){
 		if(startDate == null){
 		    throw new IllegalArgumentException("startDate cannot be null");
 		}
 		this.startDate = startDate;
 	    }
+	    /**
+	     * @return end date. Cannot be null.
+	     */
 	    public Date getEndDate(){
 		return endDate;
 	    }
+	    /**
+	     * Sets the end date.
+	     * @param endDate represents the end date. Cannot be null.
+	     * @throws IllegalArgumentException if parameter conditions are not met.
+	     */
 	    public void setEndDate(Date endDate){
 		if(endDate == null){
 		    throw new IllegalArgumentException("endDate cannot be null");

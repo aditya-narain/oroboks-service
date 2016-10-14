@@ -52,19 +52,15 @@ public class RestaurantDAO implements DAO<Restaurant> {
 	if(entity == null){
 	    throw new IllegalArgumentException("entity cannot be null");
 	}
+	verifyRestaurantEntity(entity);
+	entity.setIsActive(Status.ACTIVE.getStatus());
 	try{
-	    verifyRestaurantEntity(entity);
-	    entity.setIsActive(Status.ACTIVE.getStatus());
 	    return entityManager.merge(entity);
 	}
 	catch (HibernateException he) {
 	    LOGGER.log(Level.SEVERE, "Unable to save location in the database");
+	    throw new SaveException("Unable to save location in the database. More Stack Trace: "+ he);
 	}
-	catch(SaveException e){
-	    LOGGER.log(Level.SEVERE, "Unable to save restaurant in the database");
-	}
-	// Error while saving restaurant.
-	return null;
 
     }
 

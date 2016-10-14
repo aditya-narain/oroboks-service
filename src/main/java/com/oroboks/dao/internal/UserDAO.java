@@ -64,11 +64,8 @@ public class UserDAO implements DAO<User> {
 	    LOGGER.log(Level.SEVERE,
 		    "Hibernate Exception while saving/updating: More exception chain with :"
 			    + exception);
-	} catch (SaveException e) {
-	    LOGGER.log(Level.SEVERE,
-		    "Save Exception occured: More exception chain with :" + e);
+	    throw new SaveException("Save Exception occured: More exception chain with :" + exception);
 	}
-	return null;
     }
 
     @SuppressWarnings("unchecked")

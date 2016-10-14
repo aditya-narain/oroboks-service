@@ -53,18 +53,14 @@ public class LocationDAO implements DAO<Location> {
 	    LOGGER.log(Level.SEVERE, "location entity is null");
 	    throw new IllegalArgumentException("location cannot be null");
 	}
+	verifyLocation(entity);
+	Location location = saveLocationInLowerCase(entity);
 	try {
-	    verifyLocation(entity);
-	    Location location = saveLocationInLowerCase(entity);
 	    return entityManager.merge(location);
 	} catch (HibernateException he) {
 	    LOGGER.log(Level.SEVERE, "Unable to save location in the database");
-	} catch (SaveException e) {
-	    LOGGER.log(Level.SEVERE,
-		    "Save Exception occured: More exception chain with :" + e);
+	    throw new SaveException("Save Exception occured: More exception chain with :" + he);
 	}
-	return null;
-
     }
 
     private void verifyLocation(Location entity) throws SaveException {

@@ -14,10 +14,10 @@
 
 ## User Information Retrieval 
 ##### GET Requests :
-`/users` : Fetches current *active* user (according to Coookie value) in the specified JSON format. Returns 403 if cookie is tried to be changed/mishandled/expires. If cookie does not have the token, 403 is returned.       
-`/users/{userId}` :  Fetches user with primary id of the user(UUID generated from database).   
-`/users/deactivate` : Deactivates the current user saved in the cookie. Returns 200 OK, if user is successfully deactivated. Will return 304(No Modified content) if user associated with the emailid is already deactivated. Returns 403 if cookie is tried to be changed/mishandled/expires.  
-
+`/users/currentuser` : Fetches current *active* user (according to Coookie value) in the specified JSON format. Returns 403 if cookie is tried to be changed/mishandled/expires. If cookie does not have the token, 403 is returned.       
+`/users/currentuser/{userId}` :  Fetches user with primary id of the user(UUID generated from database).   
+`/users/currentuser/deactivate` : Deactivates the current user saved in the cookie. Returns 200 OK, if user is successfully deactivated. Will return 304(No Modified content) if user associated with the emailid is already deactivated. Returns 403 if cookie is tried to be changed/mishandled/expires.
+ 
 **Sample JSON Response when user is retrieved**  
 ```json
 {
@@ -39,6 +39,35 @@
             "href": "http://localhost:8080/sampleRest/oroboks/users/1"
         }]
     }]
+}
+```
+`/users/currentuser/orders` : Orders for the currentuser. 
+```json
+{
+    "YYYY-MM-DDT00:00:00.000+0000": [
+        {
+            "summary": "<Summary>",
+            "comboName": "<Combo>",
+            "price": "<Price>",
+            "sideDish": "<Side Dish>",
+            "links": [
+                {
+                    "rel": "user",
+                    "href": "http://oroboks.herokuapp.com/users/1480775d-8c4f-4fb1-b0f0-c54620c9b338"
+                },
+                {
+                    "rel": "self",
+                    "href": "http://oroboks.herokuapp.com/users/currentusers/orders/08a3c564-dce5-4950-a094-e16de68ad69e"
+                },
+                {
+                    "rel": "comboImage",
+                    "href": "http://oroboks.herokuapp.com/combos/default"
+                }
+            ],
+            "mainDish": "<Main Dish>",
+            "day": "YYYY-MM-DD 00:00:00.0"
+        }
+    ]
 }
 ```
 *Please Note : If users is empty, empty users map is returned*  

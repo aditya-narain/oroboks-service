@@ -255,6 +255,7 @@ public class EntityJsonUtility {
 
     private static Map<String, Object> getOrderMap(Order order, UriInfo uriInfo){
 	Map<String, Object> result = new HashMap<String, Object>();
+	result.put("orderId", order.getUUID());
 	result.put("day", order.getOrderDate().toString());
 	result.put("comboName", order.getComboId().getComboName());
 	result.put("mainDish", order.getComboId().getMainDish());

@@ -48,6 +48,10 @@ public class Combo extends BaseEntity {
     private String comboImage;
 
     @NotNull
+    @Column(name = "COMBO_TYPE")
+    private String comboType;
+
+    @NotNull
     @Column(name = "MAIN_DISH")
     private String mainDish;
 
@@ -85,7 +89,7 @@ public class Combo extends BaseEntity {
 	 */
     }
 
-    private Combo(final String comboName, final String comboImage,
+    private Combo(final String comboName, final String comboImage,final String comboType,
 	    final String mainDish, final String sideDish,
 	    final String comboSummary, final Restaurant restaurant,
 	    final String ingredients, final String comboPrice,
@@ -93,6 +97,7 @@ public class Combo extends BaseEntity {
 	this.comboName = comboName;
 	this.comboImage = (comboImage == null || comboImage.trim().isEmpty()) ? DEFAULT_COMBO_IMAGE_PATH
 		: comboImage;
+	this.comboType = comboType;
 	this.mainDish = mainDish;
 	this.sideDish = sideDish;
 	this.comboSummary = comboSummary;
@@ -110,6 +115,14 @@ public class Combo extends BaseEntity {
      */
     public String getComboName() {
 	return comboName;
+    }
+
+    /**
+     * Retrieves combo type.
+     * @return non-null combo type.
+     */
+    public String getComboType(){
+	return comboType;
     }
 
     /**
@@ -196,6 +209,7 @@ public class Combo extends BaseEntity {
     public static class ComboBuilder {
 	private String comboName;
 	private String comboImage;
+	private String comboType;
 	private String mainDish;
 	private String sideDish;
 	private String comboSummary;
@@ -235,6 +249,20 @@ public class Combo extends BaseEntity {
 	public ComboBuilder addComboImage(String comboImage) {
 	    this.comboImage = (comboImage == null || comboImage.trim()
 		    .isEmpty()) ? DEFAULT_COMBO_IMAGE_PATH : comboImage;
+	    return this;
+	}
+
+	/**
+	 * Add comboType to the combo.
+	 * @param comboType Type of combo.
+	 * @return {@link ComboBuilder} with comboType.
+	 * @throws IllegalArgumentException if parameter conditions are not met.
+	 */
+	public ComboBuilder addComboType(String comboType) {
+	    if(comboType == null || comboType.trim().isEmpty()){
+		throw new IllegalArgumentException("comboType cannot be null or empty");
+	    }
+	    this.comboType = comboType;
 	    return this;
 	}
 
@@ -424,7 +452,7 @@ public class Combo extends BaseEntity {
 	 */
 	public Combo build() {
 	    verifyComboBuild();
-	    return new Combo(comboName, comboImage, mainDish, sideDish,
+	    return new Combo(comboName, comboImage, comboType, mainDish, sideDish,
 		    comboSummary, restaurant, ingredients, comboPrice,
 		    comboAvailaibleSet, cuisines);
 	}
@@ -433,6 +461,10 @@ public class Combo extends BaseEntity {
 	    if (comboName == null || comboName.trim().isEmpty()) {
 		throw new IllegalArgumentException(
 			"ComboName cannot be null or empty");
+	    }
+	    if (comboType == null || comboType.trim().isEmpty()) {
+		throw new IllegalArgumentException(
+			"comboType cannot be null or empty");
 	    }
 	    if (mainDish == null || mainDish.trim().isEmpty()) {
 		throw new IllegalArgumentException(

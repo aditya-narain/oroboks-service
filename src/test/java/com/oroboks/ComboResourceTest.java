@@ -109,6 +109,7 @@ public class ComboResourceTest {
 	Mockito.when(mockCuisine.getCuisine()).thenReturn("indian");
 	Mockito.when(mockCombo.getComboName()).thenReturn("Combo1");
 	Mockito.when(mockCombo.getComboImage()).thenReturn("image1");
+	Mockito.when(mockCombo.getComboType()).thenReturn("Vegeterian");
 	Mockito.when(mockCombo.getMainDish()).thenReturn("Main Dish");
 	Mockito.when(mockCombo.getSideDish()).thenReturn("Side Dish");
 	Mockito.when(mockCombo.getComboSummary()).thenReturn("Combo Summary");

@@ -172,6 +172,7 @@ public class EntityJsonUtility {
 	resultMap.put("id", combo.getUUID());
 	resultMap.put("name", combo.getComboName());
 	resultMap.put("image", combo.getComboImage());
+	resultMap.put("comboType", FormatterUtility.normalizeString(combo.getComboType()));
 	resultMap.put("mainDish", combo.getMainDish());
 	resultMap.put("sideDish", combo.getSideDish());
 	resultMap.put("summary", combo.getComboSummary());

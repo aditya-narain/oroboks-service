@@ -24,6 +24,7 @@ import javax.ws.rs.core.UriInfo;
 import com.oroboks.dao.DAO;
 import com.oroboks.entities.Combo;
 import com.oroboks.entities.ComboHistory;
+import com.oroboks.entities.ComboNutrition;
 import com.oroboks.entities.Cuisine;
 import com.oroboks.entities.Location;
 import com.oroboks.entities.Restaurant;
@@ -52,6 +53,7 @@ public class ComboResource {
     private final DAO<Restaurant> restaurantDAO;
     private final DAO<Location> locationDAO;
     private final DAO<ComboHistory> comboHistoryDAO;
+    private final DAO<ComboNutrition> comboNutritionDAO;
     // Location radius in miles
     private final Double locationRadiusInMiles = 5.2;
 
@@ -63,14 +65,19 @@ public class ComboResource {
      * @param locationDAO
      *            DAO for {@link Location}, can never be null
      * @param comboHistoryDAO
-     *            for {@link ComboHistory}, can never be null.
+     *            DAO for {@link ComboHistory}, can never be null.
+     * @param comboNutritionDAO
+     *            DAO for {@link ComboNutrition}, can never be null.
      */
     @Inject
-    public ComboResource(DAO<Restaurant> restaurantDAO,
-	    DAO<Location> locationDAO, DAO<ComboHistory> comboHistoryDAO) {
+    public ComboResource(final DAO<Restaurant> restaurantDAO,
+	    final DAO<Location> locationDAO,
+	    final DAO<ComboHistory> comboHistoryDAO,
+	    final DAO<ComboNutrition> comboNutritionDAO) {
 	this.restaurantDAO = restaurantDAO;
 	this.locationDAO = locationDAO;
 	this.comboHistoryDAO = comboHistoryDAO;
+	this.comboNutritionDAO = comboNutritionDAO;
     }
 
     /**
@@ -195,6 +202,7 @@ public class ComboResource {
 		if (!comboAvailaibilityMap.containsKey(eachCombo.getUUID())) {
 		    continue;
 		}
+
 		List<String> datesAvailaible = comboAvailaibilityMap
 			.get(eachCombo.getUUID());
 		Set<Cuisine> comboCuisines = eachCombo.getCuisines();
@@ -211,9 +219,10 @@ public class ComboResource {
 				.normalizeString(eachCuisine.getCuisine()
 					.toLowerCase()));
 		    }
-
+		    // Retrieving List of nutrition attributes in each combo.
+		    List<String> comboNutritonAttributes = getComboNutritionAttributes(eachCombo);
 		    comboResultMap.add(EntityJsonUtility.getComboResultsMap(
-			    restaurant, datesAvailaible, eachCombo, uriInfo));
+			    restaurant, datesAvailaible,comboNutritonAttributes, eachCombo, uriInfo));
 		    cuisineMap.put(FormatterUtility.normalizeString(eachCuisine
 			    .getCuisine().toLowerCase()), comboResultMap);
 		}
@@ -221,6 +230,17 @@ public class ComboResource {
 	}
 	result.put("combos", cuisineMap);
 	return result;
+    }
+
+    private List<String> getComboNutritionAttributes(Combo eachCombo) {
+	List<String> results = new ArrayList<String>();
+	Map<String, Object> filterEntitiesMap = new HashMap<String, Object>();
+	filterEntitiesMap.put("comboId", eachCombo.getUUID());
+	List<ComboNutrition> comboNutritionList = comboNutritionDAO.getEntitiesByField(filterEntitiesMap);
+	for(ComboNutrition comboNutrition:comboNutritionList){
+	    results.add(comboNutrition.getComboNutrient());
+	}
+	return results;
     }
 
     /*

@@ -148,6 +148,7 @@ public class EntityJsonUtility {
      * Result map for getting Combos
      * @param restaurant {@link Restaurant}, cannot be null.
      * @param datesAvailaible dates combo is availaible. Cannot be null or empty.
+     * @param comboNutritionAttributes Nutrition attributes of combo. Cannot be null but can be empty.
      * @param combo {@link Combo}, cannot be null.
      * @param uriInfo {@link UriInfo uriinfo} provides access to application and
      *            request URI information. Cannot be null
@@ -155,12 +156,15 @@ public class EntityJsonUtility {
      * @throws IllegalArgumentException if parameter conditions are not met.
      */
     public static Map<String, Object> getComboResultsMap(Restaurant restaurant,
-	    List<String> datesAvailaible, Combo combo, UriInfo uriInfo) {
+	    List<String> datesAvailaible, List<String> comboNutritionAttributes, Combo combo, UriInfo uriInfo) {
 	if(restaurant == null){
 	    throw new IllegalArgumentException("restaurant cannot be null");
 	}
 	if(datesAvailaible == null || datesAvailaible.isEmpty()){
 	    throw new IllegalArgumentException("datesAvailaible cannot be null or empty");
+	}
+	if(comboNutritionAttributes == null){
+	    throw new IllegalArgumentException("comboNutrition attributes cannot be null");
 	}
 	if(combo == null){
 	    throw new IllegalArgumentException("combo cannot be null or empty");
@@ -176,6 +180,7 @@ public class EntityJsonUtility {
 	resultMap.put("mainDish", combo.getMainDish());
 	resultMap.put("sideDish", combo.getSideDish());
 	resultMap.put("summary", combo.getComboSummary());
+	resultMap.put("nutritionAttributes", comboNutritionAttributes);
 	resultMap.put("availaibleDates", datesAvailaible);
 	Map<String, Object> restaurantMap = new HashMap<String, Object>();
 	restaurantMap.put("restaurantName", restaurant.getName());

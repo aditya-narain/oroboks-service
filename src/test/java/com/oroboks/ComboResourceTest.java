@@ -25,6 +25,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.oroboks.dao.DAO;
 import com.oroboks.entities.Combo;
 import com.oroboks.entities.ComboHistory;
+import com.oroboks.entities.ComboNutrition;
+import com.oroboks.entities.ComboNutrition.NutritionType;
 import com.oroboks.entities.Cuisine;
 import com.oroboks.entities.Location;
 import com.oroboks.entities.Restaurant;
@@ -54,6 +56,8 @@ public class ComboResourceTest {
     private UriInfo mockUriInfo;
     @Mock
     private UriBuilder mockUriBuilder;
+    @Mock
+    private DAO<ComboNutrition> mockComboNutritionDAO;
 
 
     private ComboResource comboResource;
@@ -63,7 +67,7 @@ public class ComboResourceTest {
      */
     @Before
     public void setup(){
-	comboResource = new ComboResource(restaurantDAO, locationDAO, comboHistoryDAO);
+	comboResource = new ComboResource(restaurantDAO, locationDAO, comboHistoryDAO, mockComboNutritionDAO);
     }
 
     @Test
@@ -120,6 +124,8 @@ public class ComboResourceTest {
 	Mockito.when(mockUriBuilder.path(Matchers.isA(String.class))).thenReturn(mockUriBuilder);
 	Mockito.when(mockUriBuilder.build()).thenReturn(new URI("http://restaurant/1"));
 	Mockito.when(mockCombo.getIngredients()).thenReturn("Ingredients");
+	ComboNutrition nutrition = new ComboNutrition("Combo@1", NutritionType.LOW_CALORIES);
+	Mockito.when(mockComboNutritionDAO.getEntitiesByField(Matchers.isA(Map.class))).thenReturn(Collections.singletonList(nutrition));
 	Map<String, List<Object>> expectedResult = (Map<String, List<Object>>) comboResource.getComboResultsMap(coordinate, mockUriInfo).get("combos");
 	Assert.assertEquals(expectedResult.size(), 1);
 	Assert.assertTrue(expectedResult.containsKey("Indian"));
@@ -132,7 +138,10 @@ public class ComboResourceTest {
 	Assert.assertEquals(datesAvailaible.size(), 1);
 	String dateAvailaible = "2020-11-21, Saturday";
 	Assert.assertEquals(datesAvailaible.get(0), dateAvailaible);
+	Assert.assertEquals(comboObject.get("nutritionAttributes"), Collections.singletonList("Low Calories"));
     }
+
+
 
 
 }

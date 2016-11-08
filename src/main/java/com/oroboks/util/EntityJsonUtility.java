@@ -128,7 +128,7 @@ public class EntityJsonUtility {
 	    userPropertyMap.put("username", userLocation.getUser().getUserId());
 	    userPropertyMap.put(
 		    "link",
-		    uriInfo.getBaseUriBuilder().path(UserResource.class)
+		    uriInfo.getBaseUriBuilder().path(UserResource.class).path("currentuser")
 		    .path(userLocation.getUser().getUUID()).build()
 		    .toString());
 	    usersList.add(userPropertyMap);

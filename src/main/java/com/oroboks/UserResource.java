@@ -59,6 +59,7 @@ public class UserResource {
     private final Logger LOGGER = Logger.getLogger(UserResource.class
 	    .getSimpleName());
 
+
     private final DAO<User> userDAO;
     private final DAO<Location> locationDAO;
     private final DAO<UserLocation> userLocationDAO;
@@ -437,16 +438,18 @@ public class UserResource {
     @Path("/currentuser/orders")
     public Response addUserOrders(List<Order> orders,
 	    @Context HttpHeaders httpHeaders) {
-	final String COMBO_KEY = "combos";
-	final String COMBO_ID_KEY = "comboid";
-	final String COMBO_QTY_KEY = "quantity";
-	final String COMBO_DATE = "date";
 	String userId = tokenInstance.getEntityIdFromHttpHeader(httpHeaders);
 	if (userId == null || userId.trim().isEmpty()) {
 	    return Response.status(HttpServletResponse.SC_UNAUTHORIZED)
 		    .entity("UnAuthorized access of API").build();
 	}
 	User user = getUserWithUserUUID(userId);
+	if(user == null){
+	    LOGGER.log(Level.SEVERE,
+		    "userId is not present in database");
+	    return Response.status(HttpServletResponse.SC_NOT_IMPLEMENTED)
+		    .entity("userId not found").build();
+	}
 	for (Order order : orders) {
 	    Combo combo = getComboWithId(order.getComboId());
 	    if (combo == null) {

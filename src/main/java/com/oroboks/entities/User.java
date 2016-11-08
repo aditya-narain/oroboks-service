@@ -51,6 +51,9 @@ public class User extends BaseEntity {
     @Column(name = "BIRTH_DATE")
     private Date birthDate;
 
+    @Column(name = "STRIPE_CUSTOMER_ID")
+    private String stripeCustomerId;
+
     @NotNull
     @Column(name = "IS_ACTIVE")
     private Integer isActive;
@@ -205,6 +208,31 @@ public class User extends BaseEntity {
      */
     public void setIsActive(Integer isActive) {
 	this.isActive = isActive;
+    }
+
+    /**
+     * Sets the customerId provided by Stripe.
+     * 
+     * @param customerId
+     *            unique Id of customer payment source provided by Stripe.
+     *            Cannot be null or empty.
+     * @throws IllegalArgumentException
+     *             if parameter conditions are not met.
+     */
+    public void setStripeCustomerId(String customerId) {
+	if (customerId == null || customerId.trim().isEmpty()) {
+	    throw new IllegalArgumentException(
+		    "customerId cannot be null or empty");
+	}
+	this.stripeCustomerId = customerId;
+    }
+
+    /**
+     * @return Stripe customer Id if set. Can return null or empty customerId if
+     *         not saved for user.
+     */
+    public String getStripeCustomerId() {
+	return stripeCustomerId;
     }
 
     /**

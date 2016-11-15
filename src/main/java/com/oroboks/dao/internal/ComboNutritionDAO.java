@@ -65,6 +65,7 @@ public class ComboNutritionDAO implements DAO<ComboNutrition> {
 	throw new UnsupportedOperationException("This function is not supported");
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<ComboNutrition> getEntitiesByField(
 	    Map<String, Object> filterEntitiesByFieldMap) {
@@ -110,7 +111,7 @@ public class ComboNutritionDAO implements DAO<ComboNutrition> {
 	    LOGGER.log(Level.INFO, "Entity to deleted is null");
 	    throw new IllegalArgumentException("Entity to be deleted is null");
 	}
-	if(entity.getComboId() == null || entity.getComboId().trim().isEmpty()){
+	if(entity.getComboId() == null){
 	    LOGGER.log(Level.INFO,"Entity cannot be deleted as comboId is unknown");
 	    return null;
 	}

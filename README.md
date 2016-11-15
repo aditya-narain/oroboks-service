@@ -198,26 +198,94 @@ Data to be passed:
 ```json 
 {
     "combos": {
-        "Indian": [
+        "Pakistani": [
             {
-                "ingredients": "SarsoKaSaag, Panner Kofta,Onion, Tomatoes,Chilli",
-                "summary": "India taste brought to US",
-                "id": "4",
-                "availaibleDates": [
-                    "2016-07-07, Thursday"
-                ],
-                "price": "9.5",
-                "sideDish": "Rice, Naan bread",
-                "name": "Ruchi Veggie",
-                "mainDish": "Sarso Ka Saag, Palak Paneer",
+                "summary": "Spicy combo of supreme nonVeg combo",
                 "image": "default",
+                "price": "10",
+                "comboType": "Nonvegeterian",
                 "restaurant": {
-                    "restaurantwebsite": "www.ruchi.com",
-                    "link": "http://localhost:8080/oroboks/restaurants/2",
-                    "restaurantName": "Ruchi"
-                }
+                    "restaurantwebsite": "www.kulturekurry.com",
+                    "restaurantName": "Kulture Kurry",
+                    "link": "http://oroboks.herokuapp.com/restaurants/1"
+                },
+                "comboId": "2",
+                "name": "NonVeg Thali",
+                "sideDish": "Rice, bread",
+                "nutritionAttributes": [
+                    "Low Cholestrol"
+                ],
+                "ingredients": "Halal Chicken, Pepper, Onion, Tomatoes, Cream",
+                "availaibleDates": [
+                    "2016-11-19, Saturday",
+                    "2016-11-20, Sunday"
+                ],
+                "mainDish": "Chicken Tikka Masala"
             }
         ]
+    }
+}
+```
+`/combos/locations/{zipcode}?sortby=date`- Fetches all the active combos availaible in 8 miles radius of the zipcode and yields results by date.
+**Sample JSON for Combos Tentatively for date**
+```json
+{
+    "dates": {
+        "2016-11-18, Friday": [],
+        "2016-11-16, Wednesday": [],
+        "2016-11-19, Saturday": [
+            {
+                "summary": "Spicy combo of supreme nonVeg combo",
+                "image": "default",
+                "restaurant": {
+                    "restaurantwebsite": "www.kulturekurry.com",
+                    "restaurantName": "Kulture Kurry",
+                    "link": "http://oroboks.herokuapp.com/restaurants/1"
+                },
+                "comboId": "2",
+                "mainDish": "Chicken Tikka Masala",
+                "cuisines": [
+                    "Pakistani"
+                ],
+                "price": "10",
+                "comboType": "Nonvegeterian",
+                "name": "NonVeg Thali",
+                "sideDish": "Rice, bread",
+                "nutritionAttributes": [
+                    "Low Cholestrol"
+                ],
+                "ingredients": "Halal Chicken, Pepper, Onion, Tomatoes, Cream",
+                "id": "7"
+            }
+        ],
+        "2016-11-22, Tuesday": [],
+        "2016-11-21, Monday": [],
+        "2016-11-20, Sunday": [
+            {
+                "summary": "Spicy combo of supreme nonVeg combo",
+                "image": "default",
+                "restaurant": {
+                    "restaurantwebsite": "www.kulturekurry.com",
+                    "restaurantName": "Kulture Kurry",
+                    "link": "http://oroboks.herokuapp.com/restaurants/1"
+                },
+                "comboId": "2",
+                "mainDish": "Chicken Tikka Masala",
+                "cuisines": [
+                    "Pakistani"
+                ],
+                "price": "10",
+                "comboType": "Nonvegeterian",
+                "name": "NonVeg Thali",
+                "sideDish": "Rice, bread",
+                "nutritionAttributes": [
+                    "Low Cholestrol"
+                ],
+                "ingredients": "Halal Chicken, Pepper, Onion, Tomatoes, Cream",
+                "id": "8"
+            }
+        ],
+        "2016-11-17, Thursday": []
     }
 }
 ```

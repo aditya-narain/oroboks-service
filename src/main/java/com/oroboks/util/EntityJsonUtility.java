@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.core.UriInfo;
 
@@ -13,6 +14,9 @@ import com.oroboks.LocationResource;
 import com.oroboks.RestaurantResource;
 import com.oroboks.UserResource;
 import com.oroboks.entities.Combo;
+import com.oroboks.entities.ComboHistory;
+import com.oroboks.entities.ComboNutrition;
+import com.oroboks.entities.Cuisine;
 import com.oroboks.entities.Location;
 import com.oroboks.entities.Order;
 import com.oroboks.entities.Restaurant;
@@ -82,7 +86,7 @@ public class EntityJsonUtility {
 	}
 	userResult.put("locations", locationsList);
 	List<Object> linksList = new ArrayList<Object>();
-	String href = uriInfo.getBaseUriBuilder().path(UserResource.class)
+	String href = uriInfo.getBaseUriBuilder().path(UserResource.class).path("currentuser")
 		.path(user.getUUID()).build().toString();
 	EntityLinks otherLinks = new EntityLinks(href, "self");
 	linksList.add(otherLinks.getRelationshipMap());
@@ -128,7 +132,7 @@ public class EntityJsonUtility {
 	    userPropertyMap.put("username", userLocation.getUser().getUserId());
 	    userPropertyMap.put(
 		    "link",
-		    uriInfo.getBaseUriBuilder().path(UserResource.class)
+		    uriInfo.getBaseUriBuilder().path(UserResource.class).path("currentuser")
 		    .path(userLocation.getUser().getUUID()).build()
 		    .toString());
 	    usersList.add(userPropertyMap);
@@ -147,7 +151,6 @@ public class EntityJsonUtility {
     /**
      * Result map for getting Combos
      * @param restaurant {@link Restaurant}, cannot be null.
-     * @param datesAvailaible dates combo is availaible. Cannot be null or empty.
      * @param comboNutritionAttributes Nutrition attributes of combo. Cannot be null but can be empty.
      * @param combo {@link Combo}, cannot be null.
      * @param uriInfo {@link UriInfo uriinfo} provides access to application and
@@ -156,12 +159,9 @@ public class EntityJsonUtility {
      * @throws IllegalArgumentException if parameter conditions are not met.
      */
     public static Map<String, Object> getComboResultsMap(Restaurant restaurant,
-	    List<String> datesAvailaible, List<String> comboNutritionAttributes, Combo combo, UriInfo uriInfo) {
+	    List<String> comboNutritionAttributes, Combo combo, UriInfo uriInfo) {
 	if(restaurant == null){
 	    throw new IllegalArgumentException("restaurant cannot be null");
-	}
-	if(datesAvailaible == null || datesAvailaible.isEmpty()){
-	    throw new IllegalArgumentException("datesAvailaible cannot be null or empty");
 	}
 	if(comboNutritionAttributes == null){
 	    throw new IllegalArgumentException("comboNutrition attributes cannot be null");
@@ -173,7 +173,7 @@ public class EntityJsonUtility {
 	    throw new IllegalArgumentException("uriInfo cannot be null or empty");
 	}
 	Map<String, Object> resultMap = new HashMap<String, Object>();
-	resultMap.put("id", combo.getUUID());
+	resultMap.put("comboId", combo.getUUID());
 	resultMap.put("name", combo.getComboName());
 	resultMap.put("image", combo.getComboImage());
 	resultMap.put("comboType", FormatterUtility.normalizeString(combo.getComboType()));
@@ -181,7 +181,6 @@ public class EntityJsonUtility {
 	resultMap.put("sideDish", combo.getSideDish());
 	resultMap.put("summary", combo.getComboSummary());
 	resultMap.put("nutritionAttributes", comboNutritionAttributes);
-	resultMap.put("availaibleDates", datesAvailaible);
 	Map<String, Object> restaurantMap = new HashMap<String, Object>();
 	restaurantMap.put("restaurantName", restaurant.getName());
 	restaurantMap.put("restaurantwebsite", restaurant.getUrl());
@@ -191,6 +190,50 @@ public class EntityJsonUtility {
 	resultMap.put("price", combo.getComboPrice());
 	resultMap.put("ingredients", combo.getIngredients());
 	return resultMap;
+    }
+
+    /**
+     * Returns combo results according to date
+     * @param combosByDateMap map that contains {@link ComboHistory} sorted by date.
+     * @param uriInfo {@link UriInfo uriinfo} provides access to application and
+     *            request URI information. Cannot be null
+     * @return combo results in a map form that is returned as JSON to user.
+     * @throws IllegalArgumentException if parameter conditions are not met.
+     */
+    public static Map<String, Object> getComboResultsByDate(Map<Date, List<ComboHistory>> combosByDateMap, UriInfo uriInfo){
+	if(combosByDateMap == null){
+	    throw new IllegalArgumentException("combosByDateMap cannot be null");
+	}
+	if(uriInfo == null){
+	    throw new IllegalArgumentException("uriInfo cannot be null");
+	}
+	Map<String, Object> results = new HashMap<String, Object>();
+	for(Date date : combosByDateMap.keySet()){
+	    List<ComboHistory> comboHistoryList = combosByDateMap.get(date);
+	    List<Object> comboAvailaibilityListObject = new ArrayList<Object>();
+	    for(ComboHistory eachComboHistory : comboHistoryList){
+		Combo combo = eachComboHistory.getComboId();
+		Set<ComboNutrition> comboNutritionSet = combo.getComboNutritionSet();
+		List<String> comboNutritionAttributes = new ArrayList<String>();
+		for(ComboNutrition comboNutrition : comboNutritionSet){
+		    comboNutritionAttributes.add(comboNutrition.getComboNutrient());
+		}
+
+		Map<String, Object> comboResultMap = getComboResultsMap(
+			combo.getRestaurant(), comboNutritionAttributes, combo,
+			uriInfo);
+		comboResultMap.put("id", eachComboHistory.getUUID());
+		List<String> cuisineList = new ArrayList<String>();
+		Set<Cuisine> cuisines = eachComboHistory.getComboId().getCuisines();
+		for(Cuisine cuisine:cuisines){
+		    cuisineList.add(cuisine.getCuisine());
+		}
+		comboResultMap.put("cuisines", cuisineList);
+		comboAvailaibilityListObject.add(comboResultMap);
+	    }
+	    results.put(DateUtility.getDateMonthYearDayFormat(date), comboAvailaibilityListObject);
+	}
+	return results;
     }
 
 

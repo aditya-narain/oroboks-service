@@ -172,6 +172,22 @@ public class DateUtility {
 	}
 
 	/**
+	 * Converts the Date in sql date format i.e yyyy-MM-dd
+	 * @param date Date to converted . Cannot be null
+	 * @return date in sql format i.e yyyy-MM-dd.
+	 * @throws ParseException Exception thrown while parsing date.
+	 * @throws IllegalArgumentException if parameter conditions are not met.
+	 */
+	public static Date convertToSqlFormatDate(Date date) throws ParseException{
+	    if(date == null){
+		throw new IllegalArgumentException("date cannot be null");
+	    }
+	    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	    String formattedStringDate = dateFormat.format(date);
+	    return dateFormat.parse(formattedStringDate);
+	}
+
+	/**
 	 * Model for holding date ranges.
 	 * @author Aditya Narain
 	 *

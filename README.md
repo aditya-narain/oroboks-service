@@ -1,3 +1,5 @@
+Current Build Status:
+[ ![Codeship Status for aditya-narain/oroboks-service](https://codeship.com/projects/449d2d60-3127-0134-312c-367c60ad3115/status?branch=master)](https://codeship.com/projects/164365)
 # REST API for OROBOKS
 > Note : This information will be updated as new REST API are added.
 

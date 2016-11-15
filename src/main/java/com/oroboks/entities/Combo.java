@@ -9,7 +9,6 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -74,9 +73,12 @@ public class Combo extends BaseEntity {
     private String comboPrice;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "comboId", fetch = FetchType.LAZY)
+    private Set<ComboNutrition> comboNutritionSet = new HashSet<ComboNutrition>();
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "comboId", fetch = FetchType.LAZY)
     private Set<ComboHistory> comboAvailaibleSet = new HashSet<ComboHistory>();
 
-    @ManyToMany(cascade = { CascadeType.ALL })
+    @OneToMany(cascade = { CascadeType.ALL })
     @JoinTable(name = "ORO_CUISINE_COMBOS", joinColumns = { @JoinColumn(name = "COMBO_UUID") }, inverseJoinColumns = { @JoinColumn(name = "CUISINE_UUID") })
     private Set<Cuisine> cuisines = new HashSet<Cuisine>();
 
@@ -92,7 +94,7 @@ public class Combo extends BaseEntity {
     private Combo(final String comboName, final String comboImage,final String comboType,
 	    final String mainDish, final String sideDish,
 	    final String comboSummary, final Restaurant restaurant,
-	    final String ingredients, final String comboPrice,
+	    final String ingredients, final String comboPrice,Set<ComboNutrition> comboNutritionSet,
 	    Set<ComboHistory> comboAvailaibleSet, Set<Cuisine> cuisines) {
 	this.comboName = comboName;
 	this.comboImage = (comboImage == null || comboImage.trim().isEmpty()) ? DEFAULT_COMBO_IMAGE_PATH
@@ -103,6 +105,7 @@ public class Combo extends BaseEntity {
 	this.comboSummary = comboSummary;
 	this.restaurant = restaurant;
 	this.ingredients = ingredients;
+	this.comboNutritionSet = comboNutritionSet;
 	this.comboAvailaibleSet = comboAvailaibleSet;
 	this.comboPrice = comboPrice;
 	this.cuisines = cuisines;
@@ -187,6 +190,13 @@ public class Combo extends BaseEntity {
     }
 
     /**
+     * @return set of {@link ComboNutrition} for given combo.
+     */
+    public Set<ComboNutrition> getComboNutritionSet(){
+	return comboNutritionSet;
+    }
+
+    /**
      * @return set of {@link ComboHistory} for dates combos were/are available.
      */
     public Set<ComboHistory> getComboAvailaibleSet() {
@@ -216,6 +226,7 @@ public class Combo extends BaseEntity {
 	private Restaurant restaurant;
 	private String ingredients;
 	private String comboPrice;
+	private Set<ComboNutrition> comboNutritionSet;
 	private Set<ComboHistory> comboAvailaibleSet;
 	private Set<Cuisine> cuisines;
 
@@ -417,14 +428,43 @@ public class Combo extends BaseEntity {
 	}
 
 	/**
+	 * Set {@link ComboNutrition} for the cuisine.
+	 * @param comboNutrition Nutrition availaible for the combo. Cannot be null.
+	 * @return ComboBuilder.
+	 * @throws IllegalArgumentException if parameter conditions are not met.
+	 */
+	public ComboBuilder addComboNutrion(Set<ComboNutrition> comboNutrition){
+	    if(comboNutrition == null){
+		throw new IllegalArgumentException("comboNutrition cannot be null");
+	    }
+	    this.comboNutritionSet = comboNutrition;
+	    return this;
+	}
+
+	/**
+	 * Add specific {@link ComboNutrition} to the combonutrition set.
+	 * @param comboNutrition Nutrition availaible for the combo. Cannot be null.
+	 * @return ComboBuilder
+	 * @throws IllegalArgumentException if parameter conditions are not met.
+	 */
+	@JsonIgnore
+	public ComboBuilder addComboNutrition(ComboNutrition comboNutrition){
+	    if(comboNutrition == null){
+		throw new IllegalArgumentException("comboNutrition cannot be null");
+	    }
+	    this.comboNutritionSet.add(comboNutrition);
+	    return this;
+	}
+
+	/**
 	 * Sets the cuisines of the combos.
-	 * @param cuisines Set of the {@link Cuisine} that combos belongs to. Cannot be null.
+	 * @param cuisines Set of the {@link Cuisine} that combos belongs to. Cannot be null or empty.
 	 * @return {@link ComboBuilder}
 	 * @throws IllegalArgumentException if parameter conditions are not met.
 	 */
 	public ComboBuilder addCuisines(Set<Cuisine> cuisines) {
-	    if (cuisines == null) {
-		throw new IllegalArgumentException("cuisines cannot be null");
+	    if (cuisines == null || cuisines.isEmpty()) {
+		throw new IllegalArgumentException("cuisines cannot be null or empty");
 	    }
 	    this.cuisines = cuisines;
 	    return this;
@@ -453,7 +493,7 @@ public class Combo extends BaseEntity {
 	public Combo build() {
 	    verifyComboBuild();
 	    return new Combo(comboName, comboImage, comboType, mainDish, sideDish,
-		    comboSummary, restaurant, ingredients, comboPrice,
+		    comboSummary, restaurant, ingredients, comboPrice,comboNutritionSet,
 		    comboAvailaibleSet, cuisines);
 	}
 
@@ -477,9 +517,9 @@ public class Combo extends BaseEntity {
 		throw new IllegalArgumentException(
 			"ingredients cannot be null or empty");
 	    }
-	    if (comboAvailaibleSet == null || comboAvailaibleSet.isEmpty()) {
+	    if (comboAvailaibleSet == null) {
 		throw new IllegalArgumentException(
-			"comboAvailaibleSet cannot be null or empty set");
+			"comboAvailaibleSet cannot be null");
 	    }
 	    // Cuisines cannot be null or empty set because each combo has to be
 	    // associated with atleast one cuisine

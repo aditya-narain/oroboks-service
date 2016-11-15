@@ -1,7 +1,10 @@
 package com.oroboks.entities;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -25,9 +28,9 @@ public class ComboNutrition extends BaseEntity {
      */
     private static final long serialVersionUID = 141545033201179697L;
 
-    @NotNull
-    @Column(name = "COMBO_UUID")
-    private String comboId;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "COMBO_UUID")
+    private Combo comboId;
 
     @NotNull
     @Column(name = "COMBO_NUTRIENT")
@@ -44,11 +47,11 @@ public class ComboNutrition extends BaseEntity {
 
     /**
      * Constructor for Combo Nutrient
-     * @param comboId Unique Id of the combo, Cannot be null or empty.
+     * @param comboId Unique Id of the combo, Cannot be null.
      * @param type {@link NutritionType}, cannot be null.
      */
-    public ComboNutrition(String comboId, NutritionType type){
-	if(comboId == null || comboId.trim().isEmpty()){
+    public ComboNutrition(Combo comboId, NutritionType type){
+	if(comboId == null){
 	    throw new IllegalArgumentException("comboId cannot be null or empty");
 	}
 	if(type == null){
@@ -61,7 +64,7 @@ public class ComboNutrition extends BaseEntity {
     /**
      * @return non-null, non-empty id of the combo.
      */
-    public String getComboId() {
+    public Combo getComboId() {
 	return comboId;
     }
 
@@ -69,7 +72,7 @@ public class ComboNutrition extends BaseEntity {
      * Sets the id of the combo. Cannot be null or empty.
      * @param comboId Id of the combo.
      */
-    public void setComboId(String comboId) {
+    public void setComboId(Combo comboId) {
 	this.comboId = comboId;
     }
 

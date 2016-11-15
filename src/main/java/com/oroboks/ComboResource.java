@@ -1,7 +1,10 @@
 package com.oroboks;
 
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +23,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
+import org.joda.time.DateTime;
 
 import com.oroboks.dao.DAO;
 import com.oroboks.entities.Combo;
@@ -53,7 +58,6 @@ public class ComboResource {
     private final DAO<Restaurant> restaurantDAO;
     private final DAO<Location> locationDAO;
     private final DAO<ComboHistory> comboHistoryDAO;
-    private final DAO<ComboNutrition> comboNutritionDAO;
     // Location radius in miles
     private final Double locationRadiusInMiles = 5.2;
 
@@ -66,18 +70,14 @@ public class ComboResource {
      *            DAO for {@link Location}, can never be null
      * @param comboHistoryDAO
      *            DAO for {@link ComboHistory}, can never be null.
-     * @param comboNutritionDAO
-     *            DAO for {@link ComboNutrition}, can never be null.
      */
     @Inject
     public ComboResource(final DAO<Restaurant> restaurantDAO,
 	    final DAO<Location> locationDAO,
-	    final DAO<ComboHistory> comboHistoryDAO,
-	    final DAO<ComboNutrition> comboNutritionDAO) {
+	    final DAO<ComboHistory> comboHistoryDAO){
 	this.restaurantDAO = restaurantDAO;
 	this.locationDAO = locationDAO;
 	this.comboHistoryDAO = comboHistoryDAO;
-	this.comboNutritionDAO = comboNutritionDAO;
     }
 
     /**
@@ -85,6 +85,10 @@ public class ComboResource {
      * 
      * @param zipCode
      *            zipcode of the location. Cannot be null or empty.
+     * @param sortBy
+     *            Query param to sort results by. If we need to sortby date, it
+     *            will fetch results by date. By default results are fetched by
+     *            cuisine. Can be null or empty.
      * @param uriInfo
      *            {@link UriInfo uriinfo} provides access to application and
      *            request URI information. will never be null
@@ -97,7 +101,7 @@ public class ComboResource {
     @GET
     @Path("/locations/{zipcode}")
     public Response getCombosAroundLocations(
-	    @PathParam("zipcode") String zipCode, @Context UriInfo uriInfo) {
+	    @PathParam("zipcode") String zipCode,@QueryParam("sortby") String sortBy,@Context UriInfo uriInfo) {
 	if (zipCode == null || zipCode.trim().isEmpty()) {
 	    LOGGER.log(Level.SEVERE, "zipCode is null or empty");
 	    return Response.status(HttpServletResponse.SC_BAD_REQUEST).build();
@@ -116,10 +120,19 @@ public class ComboResource {
 		    .entity("Could not determine coodinates for given location")
 		    .build();
 	}
-	result = getComboResultsMap(zipCodeCoordinate, uriInfo);
+	if(sortBy!= null && !sortBy.trim().isEmpty()){
+	    if("date".equals(sortBy.trim().toLowerCase())){
+		result = getComboByDatesMap(zipCodeCoordinate, uriInfo);
+	    }
+	}
+	else{
+	    result = getComboResultsMap(zipCodeCoordinate, uriInfo);
+	}
 	return Response.status(HttpServletResponse.SC_OK).entity(result)
 		.build();
     }
+
+
 
     /**
      * Request to fetch combos within cetain mile range for given
@@ -159,11 +172,55 @@ public class ComboResource {
     }
 
     /**
-     * This function is made package-private mainly for testing purposes.
-     * 
-     * @param bounds
+     * Returns combos list according to date. The combos returned are according to dates from currentDate - currentDate+7days
+     * @param coordinate
      *            {@link LocationCoordinateBounds bounds} to give an of latitude
      *            and longitude range
+     * @param uriInfo {@link UriInfo uriinfo} provides access to application and
+     *            request URI information. will never be null
+     * @return combos map according to date.
+     */
+    Map<String, Object>getComboByDatesMap(LocationCoordinate coordinate, UriInfo uriInfo){
+	if(coordinate == null){
+	    throw new IllegalArgumentException("coordinate cannot be null");
+	}
+	if(uriInfo == null){
+	    throw new IllegalArgumentException("uriInfo cannot be null");
+	}
+	// Calculates the location bounds within specified radius(in miles) of
+	// zipcode.
+	LocationCoordinateBounds bounds = GeoLocationCoordinateUtility
+		.calculateLocationBoundsWithinRadius(coordinate,
+			locationRadiusInMiles);
+	Map<String, Object> result = new HashMap<String, Object>();
+	Map<String, Object> filterEntitiesByFieldMap = new HashMap<String, Object>(
+		1);
+	filterEntitiesByFieldMap.put("locationCoordinateBounds", bounds);
+	List<Restaurant> restaurants = restaurantDAO
+		.getEntitiesByField(filterEntitiesByFieldMap);
+	Set<Combo> comboSet = new HashSet<Combo>();
+	for(Restaurant eachRestaurant : restaurants){
+	    comboSet.addAll(eachRestaurant.getCombos());
+	}
+	Map<Date, List<ComboHistory>> combosByDateMap = new HashMap<Date, List<ComboHistory>>();
+	try {
+	    combosByDateMap = getComboListByDateMap(comboSet);
+	} catch (ParseException e) {
+	    LOGGER.log(Level.SEVERE, "Computation error in formatting date. For more error: "+ e);
+	    return result;
+	}
+	result.put("dates", EntityJsonUtility.getComboResultsByDate(combosByDateMap, uriInfo));
+	return result;
+    }
+
+    /**
+     * This function is made package-private mainly for testing purposes.
+     * 
+     * @param coordinate
+     *            {@link LocationCoordinateBounds bounds} to give an of latitude
+     *            and longitude range
+     * @param uriInfo {@link UriInfo uriinfo} provides access to application and
+     *            request URI information. will never be null
      * @return Map of combo results consumed by REST functions. Can return empty
      */
     Map<String, Object> getComboResultsMap(LocationCoordinate coordinate,
@@ -207,40 +264,35 @@ public class ComboResource {
 			.get(eachCombo.getUUID());
 		Set<Cuisine> comboCuisines = eachCombo.getCuisines();
 		for (Cuisine eachCuisine : comboCuisines) {
-		    List<Object> comboResultMap;
+		    List<Object> comboResultMapList;
+		    // Format the cuisine key to have first letter capitalized
+		    String formattedCuisine = FormatterUtility.normalizeString(eachCuisine
+			    .getCuisine().toLowerCase());
 		    // Check in cuisineMap if cuisine exists
-		    if (!cuisineMap.containsKey(eachCuisine.getCuisine()
-			    .toLowerCase())) {
+		    if (!cuisineMap.containsKey(formattedCuisine)) {
 			// If not create List<Object> and add combomap result to
 			// the list
-			comboResultMap = new ArrayList<Object>();
+			comboResultMapList = new ArrayList<Object>();
 		    } else {
-			comboResultMap = cuisineMap.get(FormatterUtility
-				.normalizeString(eachCuisine.getCuisine()
-					.toLowerCase()));
+			comboResultMapList = cuisineMap.get(formattedCuisine);
 		    }
 		    // Retrieving List of nutrition attributes in each combo.
-		    List<String> comboNutritonAttributes = getComboNutritionAttributes(eachCombo);
-		    comboResultMap.add(EntityJsonUtility.getComboResultsMap(
-			    restaurant, datesAvailaible,comboNutritonAttributes, eachCombo, uriInfo));
-		    cuisineMap.put(FormatterUtility.normalizeString(eachCuisine
-			    .getCuisine().toLowerCase()), comboResultMap);
+		    Set<ComboNutrition> comboNutritonSet = eachCombo.getComboNutritionSet();
+		    List<String> comboNutritionList = new ArrayList<String>();
+		    for(ComboNutrition eachComboNutrition : comboNutritonSet){
+			comboNutritionList.add(eachComboNutrition.getComboNutrient());
+		    }
+		    Map<String, Object> comboResultMap = EntityJsonUtility
+			    .getComboResultsMap(restaurant, comboNutritionList,
+				    eachCombo, uriInfo);
+		    comboResultMap.put("availaibleDates", datesAvailaible);
+		    comboResultMapList.add(comboResultMap);
+		    cuisineMap.put(formattedCuisine, comboResultMapList);
 		}
 	    }
 	}
 	result.put("combos", cuisineMap);
 	return result;
-    }
-
-    private List<String> getComboNutritionAttributes(Combo eachCombo) {
-	List<String> results = new ArrayList<String>();
-	Map<String, Object> filterEntitiesMap = new HashMap<String, Object>();
-	filterEntitiesMap.put("comboId", eachCombo.getUUID());
-	List<ComboNutrition> comboNutritionList = comboNutritionDAO.getEntitiesByField(filterEntitiesMap);
-	for(ComboNutrition comboNutrition:comboNutritionList){
-	    results.add(comboNutrition.getComboNutrient());
-	}
-	return results;
     }
 
     /*
@@ -251,15 +303,7 @@ public class ComboResource {
     private Map<String, List<String>> getComboAvailaibilityMap(Set<Combo> combos) {
 	// Map entry with key:ComboId and Value:List of dates availaible.
 	Map<String, List<String>> comboAvailaibilityMap = new HashMap<String, List<String>>();
-	List<Combo> comboList = new ArrayList<Combo>();
-	comboList.addAll(combos);
-	// Creating a map to pass in the
-	// comboHistoryDAO#getEntitiesByField(Map).
-	Map<String, Object> filterComboMap = new HashMap<String, Object>(1);
-	filterComboMap.put("comboLists", comboList);
-	// Calling DAO to fetch ComboHistory entities
-	List<ComboHistory> comboHistoryLists = comboHistoryDAO
-		.getEntitiesByField(filterComboMap);
+	List<ComboHistory> comboHistoryLists = getComboAvailaibilityList(combos);
 	for (ComboHistory eachComboHistory : comboHistoryLists) {
 	    String comboId = eachComboHistory.getComboId().getUUID();
 	    List<String> dates;
@@ -273,6 +317,39 @@ public class ComboResource {
 	    comboAvailaibilityMap.put(comboId, dates);
 	}
 	return comboAvailaibilityMap;
+    }
+
+    private Map<Date, List<ComboHistory>> getComboListByDateMap(Set<Combo> combos) throws ParseException {
+	Map<Date, List<ComboHistory>> comboListByDateMap = new HashMap<Date, List<ComboHistory>>();
+	// Initialize the map from currentDay+1 to 7 days with empty Map.
+	Date currentDate = DateUtility.convertToSqlFormatDate(new DateTime().toDate());
+	Date startDate = DateUtility.addDaysToDate(1, currentDate);
+	for(int counter = 0; counter < 7; counter++){
+	    Date tempDate = DateUtility.addDaysToDate(counter, startDate);
+	    comboListByDateMap.put(tempDate, new ArrayList<ComboHistory>());
+
+	}
+	List<ComboHistory> comboHistoryList = getComboAvailaibilityList(combos);
+	for (ComboHistory eachComboHistory : comboHistoryList) {
+	    Date comboAvailDate = DateUtility.convertToSqlFormatDate(eachComboHistory.getComboServingDate());
+	    List<ComboHistory> comboAvailaibilityList = (comboListByDateMap
+		    .containsKey(comboAvailDate)) ? comboListByDateMap
+			    .get(comboAvailDate) : new ArrayList<ComboHistory>();
+			    comboAvailaibilityList.add(eachComboHistory);
+			    comboListByDateMap.put(comboAvailDate, comboAvailaibilityList);
+	}
+	return comboListByDateMap;
+    }
+
+    private List<ComboHistory> getComboAvailaibilityList(Set<Combo> combos) {
+	List<Combo> comboList = new ArrayList<Combo>();
+	comboList.addAll(combos);
+	// Creating a map to pass in the
+	// comboHistoryDAO#getEntitiesByField(Map).
+	Map<String, Object> filterComboMap = new HashMap<String, Object>(1);
+	filterComboMap.put("comboLists", comboList);
+	// Calling DAO to fetch ComboHistory entities
+	return comboHistoryDAO.getEntitiesByField(filterComboMap);
     }
 
 }

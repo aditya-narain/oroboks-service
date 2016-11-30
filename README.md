@@ -13,6 +13,8 @@ Current Build Status:
   * [POST Request](https://github.com/aditya-narain/oroboks-service#post-request)
 3. [Providers/Combos Operation](https://github.com/aditya-narain/oroboks-service#providersrestaurants-retrieval)
   * [GET Request](https://github.com/aditya-narain/oroboks-service#get-request)
+4. [Order Operation](https://github.com/aditya-narain/oroboks-service#Oroboks Orders)
+ 
 
 ## User Information Retrieval 
 ##### GET Requests :
@@ -89,7 +91,7 @@ T.B.D: What other things we can chip in.
 
 ##### POST  Request:  
 
-`/users/getToken?emailId="abc@xyz.com"`: This should be called right after user successfully logs in. This request returns the user information with tokenId in the cookie only if there secured connection. It returns 500, if user does not exist in the database.    
+`/users/getToken?emailId="abc@xyz.com"`: This should be called right after user successfully logs in. This request returns the user information with tokenId in the cookie only if there is secured connection. It returns 500, if user does not exist in the database.    
 Example of this request: `/users/getToken?emailId="abc@xyz.com"`    
 *The content for adding user will be provided in the JSON format. Hence be sure of following:*  
 `Content-Type: application/json`   
@@ -227,65 +229,145 @@ Data to be passed:
 }
 ```
 `/combos/locations/{zipcode}?sortby=date`- Fetches all the active combos availaible in 8 miles radius of the zipcode and yields results by date.
+`/combos/locations?latitude={latitude}&longitude={longitude}&sortby=date`- Fetches all active combos availaible in 8 miles radius of location coordinates and yield results by date.
 **Sample JSON for Combos Tentatively for date**
 ```json
 {
     "dates": {
-        "2016-11-18, Friday": [],
-        "2016-11-16, Wednesday": [],
-        "2016-11-19, Saturday": [
+        "2016-11-30, Wednesday": [
             {
-                "summary": "Spicy combo of supreme nonVeg combo",
+                "cuisines": [
+                    "Indian",
+                    "Pakistani"
+                ],
+                "summary": "Spicy combo of the supreme veggie combo",
                 "image": "default",
                 "restaurant": {
                     "restaurantwebsite": "www.kulturekurry.com",
-                    "restaurantName": "Kulture Kurry",
-                    "link": "http://oroboks.herokuapp.com/restaurants/1"
+                    "link": "http://localhost:8080/oroboks/restaurants/1",
+                    "restaurantName": "Kulture Kurry"
                 },
-                "comboId": "2",
-                "mainDish": "Chicken Tikka Masala",
-                "cuisines": [
-                    "Pakistani"
-                ],
-                "price": "10",
-                "comboType": "Nonvegeterian",
-                "name": "NonVeg Thali",
-                "sideDish": "Rice, bread",
+                "ingredients": "Moong Daal, Pepper, Onion, Tomatoes, Cream Sauce",
+                "id": "1",
+                "comboId": "1",
+                "price": "8.50",
+                "comboType": "Vegeterian",
+                "sideDish": "Rice, Naan bread",
+                "name": "Veg Combo",
+                "mainDish": "Daal Makhni, Paneer Tikka",
                 "nutritionAttributes": [
+                    "Low Sodium",
                     "Low Cholestrol"
-                ],
-                "ingredients": "Halal Chicken, Pepper, Onion, Tomatoes, Cream",
-                "id": "7"
+                ]
             }
         ],
-        "2016-11-22, Tuesday": [],
-        "2016-11-21, Monday": [],
-        "2016-11-20, Sunday": [
+        "2016-12-01, Thursday": [
             {
-                "summary": "Spicy combo of supreme nonVeg combo",
+                "cuisines": [
+                    "Indian"
+                ],
+                "summary": "Medium spicy combo of veggie thali",
                 "image": "default",
                 "restaurant": {
                     "restaurantwebsite": "www.kulturekurry.com",
-                    "restaurantName": "Kulture Kurry",
-                    "link": "http://oroboks.herokuapp.com/restaurants/1"
+                    "link": "http://localhost:8080/oroboks/restaurants/1",
+                    "restaurantName": "Kulture Kurry"
                 },
-                "comboId": "2",
-                "mainDish": "Chicken Tikka Masala",
-                "cuisines": [
-                    "Pakistani"
-                ],
+                "ingredients": "Mushroom, Panner, Pepper, Onion, Tomatoes, Cream",
+                "id": "11",
+                "comboId": "3",
                 "price": "10",
-                "comboType": "Nonvegeterian",
-                "name": "NonVeg Thali",
-                "sideDish": "Rice, bread",
-                "nutritionAttributes": [
-                    "Low Cholestrol"
-                ],
-                "ingredients": "Halal Chicken, Pepper, Onion, Tomatoes, Cream",
-                "id": "8"
+                "comboType": "Vegeterian",
+                "sideDish": "Rice, Naan bread",
+                "name": "Veg Deluxe",
+                "mainDish": "Paneer Tikka, Mushroom Masala",
+                "nutritionAttributes": []
             }
         ],
-        "2016-11-17, Thursday": []
+        "2016-12-02, Friday": [
+            {
+                "cuisines": [
+                    "Indian",
+                    "Pakistani"
+                ],
+                "summary": "Spicy combo of the supreme veggie combo",
+                "image": "default",
+                "restaurant": {
+                    "restaurantwebsite": "www.kulturekurry.com",
+                    "link": "http://localhost:8080/oroboks/restaurants/1",
+                    "restaurantName": "Kulture Kurry"
+                },
+                "ingredients": "Moong Daal, Pepper, Onion, Tomatoes, Cream Sauce",
+                "id": "13",
+                "comboId": "1",
+                "price": "8.50",
+                "comboType": "Vegeterian",
+                "sideDish": "Rice, Naan bread",
+                "name": "Veg Combo",
+                "mainDish": "Daal Makhni, Paneer Tikka",
+                "nutritionAttributes": [
+                    "Low Sodium",
+                    "Low Cholestrol"
+                ]
+            }
+        ],
+        "2016-12-03, Saturday": [],
+        "2016-12-04, Sunday": [],
+        "2016-12-05, Monday": [],
+        "2016-12-06, Tuesday": []
     }
 }
 ```
+## Oroboks Orders
+#### GET Request
+`/oroboks/users/currentuser/orders` - Fetches order for current user for the entire week.
+Sample Current JSON
+```json
+{
+    "2016-12-04T06:00:00.000+0000": [
+        {
+            "summary": "Spicy combo of supreme nonVeg combo",
+            "comboName": "NonVeg Thali",
+            "price": "10",
+            "sideDish": "Rice, bread",
+            "mainDish": "Chicken Tikka Masala",
+            "links": [
+                {
+                    "rel": "user",
+                    "href": "http://localhost:8080/oroboks/users/1480775d-8c4f-4fb1-b0f0-c54620c9b338"
+                },
+                {
+                    "rel": "self",
+                    "href": "http://localhost:8080/oroboks/users/currentusers/orders/a1d7f5fa-3632-47da-a5e2-4e7f32d2752d"
+                },
+                {
+                    "rel": "comboImage",
+                    "href": "http://localhost:8080/oroboks/combos/default"
+                }
+            ],
+            "day": "2016-12-04 00:00:00.0",
+            "orderId": "a1d7f5fa-3632-47da-a5e2-4e7f32d2752d"
+        }
+    ]
+  }
+```
+##### POST Request
+`/oroboks/users/currentuser/orders` - Creates orders for current user.
+*Please Note : User should be authenticated so that we have currentuser in context*
+**Sample JSON for creating orders**
+*This is a list*   
+```json
+[
+    {
+      "comboId":  
+      {
+        "uuid":"<ComboId>" //Required
+      },
+      "quantity": "<Quantity Needed>", //Required
+      "orderDate": "<YYYY-MM-DD>" //Required
+    }
+    
+]
+```
+
+

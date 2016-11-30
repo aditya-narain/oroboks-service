@@ -58,10 +58,11 @@ public class ComboDAO implements DAO<Combo> {
 	    throw new IllegalArgumentException("entity is null");
 	}
 	List<Combo> combos = new ArrayList<Combo>();
+	String comboId = Combo.class.getSimpleName()+"@"+entity.getUUID();
 	Query query;
 	try{
 	    query = entityManager.createNamedQuery(getComboById);
-	    query.setParameter("uuid", entity.getUUID());
+	    query.setParameter("uuid", comboId);
 	}
 	catch(Exception e){
 	    LOGGER.log(Level.SEVERE, "Error occured while retrieving combos");

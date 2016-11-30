@@ -437,10 +437,6 @@ public class UserResource {
     @Path("/currentuser/orders")
     public Response addUserOrders(List<Order> orders,
 	    @Context HttpHeaders httpHeaders) {
-	final String COMBO_KEY = "combos";
-	final String COMBO_ID_KEY = "comboid";
-	final String COMBO_QTY_KEY = "quantity";
-	final String COMBO_DATE = "date";
 	String userId = tokenInstance.getEntityIdFromHttpHeader(httpHeaders);
 	if (userId == null || userId.trim().isEmpty()) {
 	    return Response.status(HttpServletResponse.SC_UNAUTHORIZED)
@@ -454,6 +450,16 @@ public class UserResource {
 			"comboId is not present in combos table");
 		return Response.status(HttpServletResponse.SC_NOT_IMPLEMENTED)
 			.entity("ComboId not found").build();
+	    }
+	    if(order.getQuantity() <= 0){
+		LOGGER.log(Level.SEVERE,"order quantity is invalid");
+		return Response.status(HttpServletResponse.SC_NOT_IMPLEMENTED)
+			.entity("order quantity is not present or invalid").build();
+	    }
+	    if(order.getOrderDate() == null){
+		LOGGER.log(Level.SEVERE,"order date is not present");
+		return Response.status(HttpServletResponse.SC_NOT_IMPLEMENTED)
+			.entity("order date is not present").build();
 	    }
 	    order.setComboId(combo);
 	    order.setUserId(user);

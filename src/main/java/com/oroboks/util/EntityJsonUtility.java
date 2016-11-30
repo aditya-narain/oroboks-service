@@ -3,6 +3,7 @@ package com.oroboks.util;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -207,7 +208,7 @@ public class EntityJsonUtility {
 	if(uriInfo == null){
 	    throw new IllegalArgumentException("uriInfo cannot be null");
 	}
-	Map<String, Object> results = new HashMap<String, Object>();
+	Map<String, Object> results = new LinkedHashMap<String, Object>();
 	for(Date date : combosByDateMap.keySet()){
 	    List<ComboHistory> comboHistoryList = combosByDateMap.get(date);
 	    List<Object> comboAvailaibilityListObject = new ArrayList<Object>();

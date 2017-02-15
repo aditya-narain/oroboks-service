@@ -19,7 +19,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.oroboks.dao.DAO;
 import com.oroboks.entities.Combo;
 import com.oroboks.entities.Location;
-import com.oroboks.entities.Order;
+import com.oroboks.entities.OroOrder;
 import com.oroboks.entities.User;
 import com.oroboks.entities.UserLocation;
 import com.oroboks.util.TokenUtility;
@@ -38,7 +38,7 @@ public class UserResourceTest {
     @Mock
     private DAO<UserLocation> mockUserLocationDAO;
     @Mock
-    private DAO<Order> mockOrderDAO;
+    private DAO<OroOrder> mockOrderDAO;
     @Mock
     private DAO<Combo> mockComboDAO;
     @Mock

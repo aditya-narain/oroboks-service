@@ -13,10 +13,11 @@ import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 
 import org.hibernate.HibernateException;
+import org.joda.time.DateTime;
 
 import com.google.inject.persist.Transactional;
 import com.oroboks.dao.DAO;
-import com.oroboks.entities.Order;
+import com.oroboks.entities.OroOrder;
 import com.oroboks.entities.User;
 import com.oroboks.exception.SaveException;
 import com.oroboks.util.DateUtility;
@@ -24,14 +25,15 @@ import com.oroboks.util.DateUtility.DateRange;
 import com.oroboks.util.Status;
 
 /**
- * DAO for consumer {@link Order}
+ * DAO for consumer {@link OroOrder}
  * @author Aditya Narain
  *
  */
-public class OrderDAO implements DAO<Order> {
+public class OrderDAO implements DAO<OroOrder> {
     private final Logger LOGGER = Logger.getLogger(OrderDAO.class.getSimpleName());
     private final String getOrdersForConsumer = "order.getOrdersForConsumer";
     private final String getOrdersWithDateRange = "order.getOrderForConsumerForDates";
+    private final String getOrderOnCurrentDate = "order.getOrdersOnCurrentDate";
 
     private final EntityManager entityManager;
 
@@ -46,7 +48,7 @@ public class OrderDAO implements DAO<Order> {
 
     @Override
     @Transactional
-    public Order addEntity(Order entity) {
+    public OroOrder addEntity(OroOrder entity) {
 	if(entity == null){
 	    throw new IllegalArgumentException("entity cannot be null");
 	}
@@ -60,18 +62,32 @@ public class OrderDAO implements DAO<Order> {
     }
 
     @Override
-    public List<Order> getAllEntities() {
-	throw new UnsupportedOperationException("This method is not supported");
+    public List<OroOrder> getAllEntities() {
+	List<OroOrder> results = new ArrayList<OroOrder>();
+	Query query = entityManager.createNamedQuery(getOrderOnCurrentDate);
+	Date currentDate = new DateTime().toDate();
+	Date oneDayBeforeCurrentDate = DateUtility.subtractDaysToDate(1, currentDate);
+	DateRange dateRange = new DateRange(oneDayBeforeCurrentDate, currentDate);
+	query.setParameter("startDate", dateRange.getStartDate());
+	query.setParameter("endDate", dateRange.getEndDate());
+	query.setParameter("isActive", Status.ACTIVE.getStatus());
+	try{
+	    results = query.getResultList();
+	}
+	catch(PersistenceException pe){
+	    LOGGER.log(Level.SEVERE,"Exception in retrieving results.More errors:"+pe);
+	}
+	return results;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<Order> getEntitiesByField(
+    public List<OroOrder> getEntitiesByField(
 	    Map<String, Object> filterEntitiesByFieldMap) {
 	if(filterEntitiesByFieldMap == null){
 	    throw new IllegalArgumentException("filterEntitiesByFieldMap cannot be null");
 	}
-	List<Order> results = new ArrayList<Order>();
+	List<OroOrder> results = new ArrayList<OroOrder>();
 	if(filterEntitiesByFieldMap.isEmpty()){
 	    return results;
 	}
@@ -112,18 +128,18 @@ public class OrderDAO implements DAO<Order> {
 
 
     @Override
-    public List<Order> getEntitiesByField(Order entity) {
+    public List<OroOrder> getEntitiesByField(OroOrder entity) {
 	throw new UnsupportedOperationException("This method is not supported");
     }
 
     @Override
-    public List<Order> updateEntity(Order newEntity, String primaryKeyId,
+    public List<OroOrder> updateEntity(OroOrder newEntity, String primaryKeyId,
 	    String updateByField) {
 	throw new UnsupportedOperationException("Method not supported");
     }
 
     @Override
-    public Order deActivateEntity(Order entity) {
+    public OroOrder deActivateEntity(OroOrder entity) {
 	if(entity == null){
 	    throw new IllegalArgumentException("entity cannot be null");
 	}

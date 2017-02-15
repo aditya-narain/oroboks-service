@@ -29,7 +29,7 @@ import com.oroboks.util.Status;
 @Transactional
 public class RestaurantDAO implements DAO<Restaurant> {
 
-    private final Logger LOGGER = Logger.getLogger(RestaurantDAO.class
+    private static final Logger LOGGER = Logger.getLogger(RestaurantDAO.class
 	    .getSimpleName());
 
     private final String getRestaurantFromCoordinates = "restaurant.getRestaurantFromCoordinates";

@@ -19,7 +19,7 @@ import com.oroboks.entities.ComboHistory;
 import com.oroboks.entities.ComboNutrition;
 import com.oroboks.entities.Cuisine;
 import com.oroboks.entities.Location;
-import com.oroboks.entities.Order;
+import com.oroboks.entities.OroOrder;
 import com.oroboks.entities.Restaurant;
 import com.oroboks.entities.User;
 import com.oroboks.entities.UserLocation;
@@ -277,13 +277,13 @@ public class EntityJsonUtility {
 
     /**
      * Retrieves the map with orders w.r.t order Date.
-     * @param ordersList list of {@link Order}. Cannot be null.
+     * @param ordersList list of {@link OroOrder}. Cannot be null.
      * @param uriInfo {@link UriInfo uriinfo} provides access to application and
      *            request URI information. Cannot be null
      * @return map of orders w.r.t order date. If order list is empty, empty list is returned.
      * @throws IllegalArgumentException if parameter conditions are not met.
      */
-    public static Map<Date, Object> getOrderResultsMap(List<Order> ordersList, UriInfo uriInfo){
+    public static Map<Date, Object> getOrderResultsMap(List<OroOrder> ordersList, UriInfo uriInfo){
 	if(ordersList == null){
 	    throw new IllegalArgumentException("ordersLists cannot be null");
 	}
@@ -291,7 +291,7 @@ public class EntityJsonUtility {
 	if(ordersList.isEmpty()){
 	    return resultMap;
 	}
-	for(Order eachOrder: ordersList){
+	for(OroOrder eachOrder: ordersList){
 	    @SuppressWarnings("unchecked")
 	    List<Object> orderMapLists = (List<Object>) ((resultMap
 		    .containsKey(eachOrder.getOrderDate())) ? resultMap
@@ -303,7 +303,7 @@ public class EntityJsonUtility {
 	return resultMap;
     }
 
-    private static Map<String, Object> getOrderMap(Order order, UriInfo uriInfo){
+    private static Map<String, Object> getOrderMap(OroOrder order, UriInfo uriInfo){
 	Map<String, Object> result = new HashMap<String, Object>();
 	result.put("orderId", order.getUUID());
 	result.put("day", order.getOrderDate().toString());

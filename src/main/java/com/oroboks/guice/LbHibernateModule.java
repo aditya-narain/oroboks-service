@@ -17,7 +17,7 @@ import com.oroboks.entities.Combo;
 import com.oroboks.entities.ComboHistory;
 import com.oroboks.entities.ComboNutrition;
 import com.oroboks.entities.Location;
-import com.oroboks.entities.Order;
+import com.oroboks.entities.OroOrder;
 import com.oroboks.entities.Restaurant;
 import com.oroboks.entities.User;
 import com.oroboks.entities.UserLocation;
@@ -35,7 +35,7 @@ public class LbHibernateModule extends ServletModule {
 	bind(new TypeLiteral<DAO<UserLocation>>(){}).to(UserLocationDAO.class);
 	bind(new TypeLiteral<DAO<Restaurant>>(){}).to(RestaurantDAO.class);
 	bind(new TypeLiteral<DAO<ComboHistory>>(){}).to(ComboHistoryDAO.class);
-	bind(new TypeLiteral<DAO<Order>>(){}).to(OrderDAO.class);
+	bind(new TypeLiteral<DAO<OroOrder>>(){}).to(OrderDAO.class);
 	bind(new TypeLiteral<DAO<Combo>>(){}).to(ComboDAO.class);
 	bind(new TypeLiteral<DAO<ComboNutrition>>(){}).to(ComboNutritionDAO.class);
 	filter("/*").through(PersistFilter.class);

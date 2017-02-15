@@ -1,5 +1,8 @@
 package com.oroboks.guice;
 
+import org.quartz.SchedulerFactory;
+import org.quartz.impl.StdSchedulerFactory;
+
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Scopes;
@@ -19,10 +22,14 @@ import com.oroboks.entities.Combo;
 import com.oroboks.entities.ComboHistory;
 import com.oroboks.entities.ComboNutrition;
 import com.oroboks.entities.Location;
-import com.oroboks.entities.Order;
+import com.oroboks.entities.OroOrder;
 import com.oroboks.entities.Restaurant;
 import com.oroboks.entities.User;
 import com.oroboks.entities.UserLocation;
+import com.oroboks.quartz.GuiceJobFactory;
+import com.oroboks.quartz.OroScheduler;
+import com.oroboks.quartz.jobs.OroPaymentJob;
+import com.oroboks.quartz.jobs.scheduler.OroPaymentJobScheduler;
 import com.sun.jersey.api.core.PackagesResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
@@ -45,7 +52,7 @@ public class GuiceServlet extends GuiceServletContextListener {
 		bind(new TypeLiteral<DAO<Location>>() {}).to(LocationDAO.class);
 		bind(new TypeLiteral<DAO<Restaurant>>(){}).to(RestaurantDAO.class);
 		bind(new TypeLiteral<DAO<ComboHistory>>(){}).to(ComboHistoryDAO.class);
-		bind(new TypeLiteral<DAO<Order>>(){}).to(OrderDAO.class);
+		bind(new TypeLiteral<DAO<OroOrder>>(){}).to(OrderDAO.class);
 		bind(new TypeLiteral<DAO<Combo>>(){}).to(ComboDAO.class);
 		bind(new TypeLiteral<DAO<ComboNutrition>>(){}).to(ComboNutritionDAO.class);
 		bind(JacksonObjectMapperProvider.class).in(Scopes.SINGLETON);
@@ -58,6 +65,13 @@ public class GuiceServlet extends GuiceServletContextListener {
 		bind(
 			forName("com.fasterxml.jackson.jaxrs.json.JsonMappingExceptionMapper"))
 			.in(Scopes.SINGLETON);
+		bind(SchedulerFactory.class).to(StdSchedulerFactory.class).in(Scopes.SINGLETON);
+		bind(GuiceJobFactory.class).in(Scopes.SINGLETON);
+		bind(OroScheduler.class).in(Scopes.SINGLETON);
+		bind(OroPaymentJobScheduler.class).asEagerSingleton();
+		//Binding all quartz jobs
+		bind(OroPaymentJob.class);
+
 
 		for (Class<?> resources : rc.getClasses()) {
 		    bind(resources);

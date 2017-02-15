@@ -22,11 +22,12 @@ import com.oroboks.util.Status;
  */
 @Entity
 @NamedQueries({
-    @NamedQuery(name="order.getOrdersForConsumer", query="select o from Order o where o.user=:userId AND o.isActive = :isActive AND o.quantity > 0"),
-    @NamedQuery(name="order.getOrderForConsumerForDates", query="select o from Order o where o.user=:userId AND o.isActive = :isActive AND o.orderDate BETWEEN :startDate AND  :endDate AND o.quantity > 0")
+    @NamedQuery(name="order.getOrdersForConsumer", query="select o from OroOrder o where o.user=:userId AND o.isActive = :isActive AND o.quantity > 0"),
+    @NamedQuery(name="order.getOrderForConsumerForDates", query="select o from OroOrder o where o.user=:userId AND o.isActive = :isActive AND o.orderDate BETWEEN :startDate AND  :endDate AND o.quantity > 0"),
+    @NamedQuery(name="order.getOrdersOnCurrentDate", query = "select o from OroOrder o where o.orderDate BETWEEN :startDate AND  :endDate AND o.isActive = :isActive AND o.quantity > 0")
 })
 @Table(name = "ORO_ORDERS")
-public class Order extends BaseEntity {
+public class OroOrder extends BaseEntity {
 
     /**
      * Default serial version id
@@ -46,6 +47,10 @@ public class Order extends BaseEntity {
     private Date orderDate;
 
     @NotNull
+    @Column(name = "STRIPE_ORDER_ID")
+    private String StripeOrderId;
+
+    @NotNull
     @Column(name = "ORDER_QTY")
     private int quantity;
 
@@ -56,7 +61,7 @@ public class Order extends BaseEntity {
     /**
      * Default constructor for JPA
      */
-    public Order(){
+    public OroOrder(){
 	/*
 	 * Empty JPA constructor
 	 */
@@ -69,7 +74,7 @@ public class Order extends BaseEntity {
      * @param quantity represents the quantity of combos to be ordered. Cannot be less than 0
      * @throws IllegalArgumentException if parameter conditions are not met.
      */
-    public Order(User userId, Combo comboId, String orderDate, int quantity){
+    public OroOrder(User userId, Combo comboId, String orderDate, int quantity){
 	if(userId == null){
 	    throw new IllegalArgumentException("userId cannot be null or empty");
 	}
@@ -171,6 +176,25 @@ public class Order extends BaseEntity {
      */
     public void setQuantity(int quantity) {
 	this.quantity = quantity;
+    }
+
+    /**
+     * @return non-null Order Id generated from Stripe.
+     */
+    public String getStripeOrderId() {
+	return StripeOrderId;
+    }
+
+    /**
+     * Sets the orderId generated from Stripe.
+     * @param stripeOrderId orderId generated from Stripe API. Cannot be null or empty.
+     * @throws IllegalArgumentException if parameter conditions are not met.
+     */
+    public void setStripeOrderId(String stripeOrderId) {
+	if(stripeOrderId == null || stripeOrderId.trim().isEmpty()){
+	    throw new IllegalArgumentException("stripe orderId cannot be null or empty");
+	}
+	StripeOrderId = stripeOrderId;
     }
 
 

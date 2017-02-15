@@ -35,7 +35,7 @@ import com.oroboks.cache.MemcacheHandler;
 import com.oroboks.dao.DAO;
 import com.oroboks.entities.Combo;
 import com.oroboks.entities.Location;
-import com.oroboks.entities.Order;
+import com.oroboks.entities.OroOrder;
 import com.oroboks.entities.User;
 import com.oroboks.entities.UserLocation;
 import com.oroboks.exception.SaveException;
@@ -44,8 +44,11 @@ import com.oroboks.util.DateUtility.DateRange;
 import com.oroboks.util.EntityJsonUtility;
 import com.oroboks.util.GeoCodingUtility;
 import com.oroboks.util.GeoLocationCoordinateUtility;
+import com.oroboks.util.PaymentUtility;
 import com.oroboks.util.Status;
 import com.oroboks.util.TokenUtility;
+import com.stripe.model.Customer;
+import com.stripe.model.Order;
 
 /**
  * Root resource (exposed at "users" path)
@@ -62,7 +65,7 @@ public class UserResource {
     private final DAO<User> userDAO;
     private final DAO<Location> locationDAO;
     private final DAO<UserLocation> userLocationDAO;
-    private final DAO<Order> orderDAO;
+    private final DAO<OroOrder> orderDAO;
     private final DAO<Combo> comboDAO;
     private final MemcachedClient memcacheClient;
     // Expiry Time set to 2 hours.
@@ -83,14 +86,14 @@ public class UserResource {
      */
     @Inject
     public UserResource(DAO<User> userDAO, DAO<Location> locationDAO,
-	    DAO<UserLocation> userLocationDAO, DAO<Order> orderDAO,
+	    DAO<UserLocation> userLocationDAO, DAO<OroOrder> orderDAO,
 	    DAO<Combo> comboDAO) {
 	this(userDAO, locationDAO, userLocationDAO, orderDAO, comboDAO,  MemcacheHandler
 		.getCacheClientConnection(), TokenUtility.getInstance());
     }
 
     UserResource(DAO<User> userDAO, DAO<Location> locationDAO,
-	    DAO<UserLocation> userLocationDAO, DAO<Order> orderDAO,
+	    DAO<UserLocation> userLocationDAO, DAO<OroOrder> orderDAO,
 	    DAO<Combo> comboDAO, MemcachedClient memcacheClient, TokenUtility tokenInstance){
 	this.userDAO = userDAO;
 	this.locationDAO = locationDAO;
@@ -136,22 +139,12 @@ public class UserResource {
 	if (userId == null || userId.trim().isEmpty()) {
 	    throw new IllegalArgumentException("id cannot null or empty");
 	}
-	Map<String, Object> result = new HashMap<String, Object>();
-	Map<String, Object> filterEntitiesByField = new HashMap<String, Object>();
-	filterEntitiesByField.put("uuid", userId);
-	List<Object> userMapList = new ArrayList<Object>();
-	List<User> activeUsers = userDAO
-		.getEntitiesByField(filterEntitiesByField);
-	for (User eachActiveUser : activeUsers) {
-	    userMapList.add(EntityJsonUtility.getUserResultsMap(eachActiveUser,
-		    uriInfo));
+	User user = getUserWithUserUUID(userId);
+	if(user == null){
+	    return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
 	}
-	result.put("Users", userMapList);
-	return userMapList.isEmpty() ? Response
-		.status(HttpServletResponse.SC_NO_CONTENT).entity(result)
-		.build() : Response.status(HttpServletResponse.SC_OK)
-		.entity(result).build();
-
+	Map<String, Object> results  = EntityJsonUtility.getUserResultsMap(user, uriInfo);
+	return Response.status(HttpServletResponse.SC_OK).entity(results).build();
     }
 
     /**
@@ -170,6 +163,39 @@ public class UserResource {
 		"Update functionality currently does not exist");
     }
 
+    /**
+     * @param stripeToken
+     * @param httpHeaders
+     * @return
+     */
+    @PUT
+    @Path("/currentuser/updateStripeToken")
+    public Response updateUserStripeToken(@HeaderParam("stripeToken") String stripeToken, @Context HttpHeaders httpHeaders){
+	if(stripeToken == null || stripeToken.trim().isEmpty()){
+	    throw new IllegalArgumentException("stripeToken cannot be null or empty");
+	}
+	String id = tokenInstance.getEntityIdFromHttpHeader(httpHeaders);
+	if (id == null || id.trim().isEmpty()) {
+	    return Response.status(HttpServletResponse.SC_FORBIDDEN).build();
+	}
+	Map<String, Object> filterEntitiesByField = new HashMap<String, Object>();
+	filterEntitiesByField.put("uuid", id);
+	List<User> users = userDAO
+		.getEntitiesByField(filterEntitiesByField);
+	if(users.isEmpty()){
+	    return Response.status(HttpServletResponse.SC_NOT_FOUND).entity("User not found").build();
+	}
+	// Since there will be only one user with the id we get that user.
+	User activeUser = users.get(0);
+	Customer stripeCustomer = PaymentUtility.createCustomer(stripeToken);
+	if(stripeCustomer == null){
+	    return Response.status(HttpServletResponse.SC_NOT_IMPLEMENTED).entity("Stripe Customer was not created successfully").build();
+	}
+	activeUser.setStripeCustomerId(stripeCustomer.getId());
+	userDAO.addEntity(activeUser);
+	return Response.status(HttpServletResponse.SC_OK).entity("User has been updated with StripeToken").build();
+
+    }
     /**
      * Creates and returns new token id. This path is called when user signs In.<br/>
      * User entered secret key is taken from Authorization header that is
@@ -414,7 +440,7 @@ public class UserResource {
 	Map<String, Object> filterEntitiesMap = new HashMap<String, Object>();
 	filterEntitiesMap.put("userId", user);
 	filterEntitiesMap.put("dateRanges", dateRange);
-	List<Order> userOrderList = orderDAO
+	List<OroOrder> userOrderList = orderDAO
 		.getEntitiesByField(filterEntitiesMap);
 	Map<Date, Object> orderResultsMap = EntityJsonUtility
 		.getOrderResultsMap(userOrderList, uriInfo);
@@ -426,16 +452,15 @@ public class UserResource {
      * This resource add order for the currentuser.
      * 
      * @param orders
-     *            List of {@link Order order} given by current user.
+     *            List of {@link OroOrder order} given by current user.
      * @param httpHeaders
      *            represents the http header from where cookie is retrieved.
      *            Will never be null
      * @return {@link Response} for order being created successfully.
      */
-    @SuppressWarnings("unused")
     @POST
     @Path("/currentuser/orders")
-    public Response addUserOrders(List<Order> orders,
+    public Response addUserOrders(List<OroOrder> orders,
 	    @Context HttpHeaders httpHeaders) {
 	String userId = tokenInstance.getEntityIdFromHttpHeader(httpHeaders);
 	if (userId == null || userId.trim().isEmpty()) {
@@ -443,7 +468,7 @@ public class UserResource {
 		    .entity("UnAuthorized access of API").build();
 	}
 	User user = getUserWithUserUUID(userId);
-	for (Order order : orders) {
+	for (OroOrder order : orders) {
 	    Combo combo = getComboWithId(order.getComboId());
 	    if (combo == null) {
 		LOGGER.log(Level.SEVERE,
@@ -461,14 +486,23 @@ public class UserResource {
 		return Response.status(HttpServletResponse.SC_NOT_IMPLEMENTED)
 			.entity("order date is not present").build();
 	    }
+	    // Currently creating order accepting US Dollar. In future can
+	    // replace with i18n property for accepting other currency or probably get it from
+	    // current location.
+	    Order stripeOrder = PaymentUtility.createOrder(combo.getSkuId(), "usd");
+	    if(stripeOrder == null){
+		return Response.status(HttpServletResponse.SC_NOT_IMPLEMENTED)
+			.entity("An error occured while creating Stripe order").build();
+	    }
+	    String stripeOrderId = stripeOrder.getId();
+	    order.setStripeOrderId(stripeOrderId);
 	    order.setComboId(combo);
 	    order.setUserId(user);
 	    order.setIsActive(Status.ACTIVE.getStatus());
-	    Order orderAdded = orderDAO.addEntity(order);
+	    orderDAO.addEntity(order);
 	}
 	return Response.status(HttpServletResponse.SC_CREATED)
 		.entity("{order created}").build();
-
     }
 
     private boolean hasDefaultLocation(User user) {
@@ -588,6 +622,20 @@ public class UserResource {
 		.updateLocationWithCoordinates(location,
 			GeoCodingUtility.getInstance());
 	return updatedLocation;
+    }
+
+    enum PersonType{
+	CUSTOMER("customer"),
+	PROVIDER("provider"),
+	DEFAULT("default");
+	private String personType;
+	private PersonType(String personType){
+	    this.personType = personType;
+	}
+	public String getPersonType(PersonType type){
+	    return type.personType;
+	}
+
     }
 
 }

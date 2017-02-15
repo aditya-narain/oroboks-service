@@ -12,12 +12,8 @@
 			<property name="hibernate.connection.url" value= "jdbc:mysql://us-cdbr-iron-east-03.cleardb.net/heroku_dd63153734e3ddb"/>
 			<property name="hibernate.connection.username" value="b0e9502d5f1286"/>
 			<property name="hibernate.connection.password" value="66a2f2f5"/> 
-			<!-- To be used with locahost -->
-			<!--  <property name="hibernate.connection.url" value= "jdbc:mysql://localhost:3306/ORO_DB"/>
-			<property name="hibernate.connection.username" value="root"/>
-			<property name="hibernate.connection.password" value="root"/> -->
 			<property name="hibernate.dialect" value= "org.hibernate.dialect.MySQLDialect"/>
-			<property name="show_sql" value="true"/>
+			<!-- <property name="hibernate.show_sql" value="true"/> -->
 			<property name="hibernate.connection.provider_class" value="org.hibernate.connection.C3P0ConnectionProvider"/>
 			<property name="hibernate.c3p0.min_size" value = "0"/>
     		<property name="hibernate.c3p0.max_size" value = "100"/>

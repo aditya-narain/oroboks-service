@@ -484,6 +484,14 @@ public class UserResource {
 
     }
 
+    // TODO : This is just for test. Not to be taken literally.
+    @POST
+    @Path("/currentuser/testAPI")
+    public Response postAPITest(User user){
+	Map<String, Object> userResult = EntityJsonUtility.getUserResultsMap(user, uriInfo);
+	return Response.status(HttpServletResponse.SC_OK).entity(userResult).build();
+    }
+
     private Combo getComboWithId(Combo combo) {
 	List<Combo> combos = new ArrayList<Combo>(1);
 	combos = comboDAO.getEntitiesByField(combo);

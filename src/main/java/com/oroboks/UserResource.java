@@ -36,6 +36,7 @@ import com.oroboks.dao.DAO;
 import com.oroboks.entities.Combo;
 import com.oroboks.entities.Location;
 import com.oroboks.entities.Order;
+import com.oroboks.entities.Order.OrderWrapper;
 import com.oroboks.entities.User;
 import com.oroboks.entities.UserLocation;
 import com.oroboks.exception.SaveException;
@@ -58,7 +59,6 @@ import com.oroboks.util.TokenUtility;
 public class UserResource {
     private final Logger LOGGER = Logger.getLogger(UserResource.class
 	    .getSimpleName());
-
     private final DAO<User> userDAO;
     private final DAO<Location> locationDAO;
     private final DAO<UserLocation> userLocationDAO;
@@ -422,26 +422,9 @@ public class UserResource {
 		.entity(orderResultsMap).build();
     }
 
-    /**
-     * This resource add order for the currentuser.
-     * 
-     * @param orders
-     *            List of {@link Order order} given by current user.
-     * @param httpHeaders
-     *            represents the http header from where cookie is retrieved.
-     *            Will never be null
-     * @return {@link Response} for order being created successfully.
-     */
-    @SuppressWarnings("unused")
-    @POST
-    @Path("/currentuser/orders")
-    public Response addUserOrders(List<Order> orders,
-	    @Context HttpHeaders httpHeaders) {
-	String userId = tokenInstance.getEntityIdFromHttpHeader(httpHeaders);
-	if (userId == null || userId.trim().isEmpty()) {
-	    return Response.status(HttpServletResponse.SC_UNAUTHORIZED)
-		    .entity("UnAuthorized access of API").build();
-	}
+
+    private Response addUserOrders(List<Order> orders,
+	    String userId) {
 	User user = getUserWithUserUUID(userId);
 	for (Order order : orders) {
 	    Combo combo = getComboWithId(order.getComboId());
@@ -464,11 +447,39 @@ public class UserResource {
 	    order.setComboId(combo);
 	    order.setUserId(user);
 	    order.setIsActive(Status.ACTIVE.getStatus());
-	    Order orderAdded = orderDAO.addEntity(order);
+	    orderDAO.addEntity(order);
 	}
 	return Response.status(HttpServletResponse.SC_CREATED)
 		.entity("{order created}").build();
 
+    }
+
+    /**
+     * This resource add order for the currentuser.
+     * 
+     * @param orderWrapper
+     *            Wrapper class of {@link Order} that contains list of
+     *            {@link Order order} given by current user. Cannot be null
+     * @param httpHeaders
+     *            represents the http header from where cookie is retrieved.
+     *            Will never be null
+     * @return {@link Response} for order being created successfully.
+     */
+    @POST
+    @Path("/currentuser/orders")
+    public Response addUserOrders(OrderWrapper orderWrapper,
+	    @Context HttpHeaders httpHeaders) {
+	if (orderWrapper == null) {
+	    return Response.status(HttpServletResponse.SC_NOT_ACCEPTABLE)
+		    .entity("orderWrapper cannot be null").build();
+	}
+	String userId = tokenInstance.getEntityIdFromHttpHeader(httpHeaders);
+	if (userId == null || userId.trim().isEmpty()) {
+	    return Response.status(HttpServletResponse.SC_UNAUTHORIZED)
+		    .entity("UnAuthorized access of API").build();
+	}
+	List<Order> orders = orderWrapper.getOrders();
+	return addUserOrders(orders, userId);
     }
 
     private boolean hasDefaultLocation(User user) {

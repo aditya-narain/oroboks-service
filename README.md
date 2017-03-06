@@ -357,17 +357,18 @@ Sample Current JSON
 **Sample JSON for creating orders**
 *This is a list*   
 ```json
-[
-    {
+{
+  "orders":
+    [{
       "comboId":  
       {
-        "uuid":"<ComboId>" //Required
+        "uuid":"3" //Give UUID
       },
-      "quantity": "<Quantity Needed>", //Required
-      "orderDate": "<YYYY-MM-DD>" //Required
-    }
+      "quantity": "<Quantity>",
+      "orderDate": "YYYY-MM-DD" 
+    }]
     
-]
+}
 ```
 
 

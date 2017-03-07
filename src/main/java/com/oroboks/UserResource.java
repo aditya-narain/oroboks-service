@@ -31,6 +31,8 @@ import net.spy.memcached.MemcachedClient;
 
 import org.joda.time.DateTime;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.oroboks.cache.MemcacheHandler;
 import com.oroboks.dao.DAO;
 import com.oroboks.entities.Combo;
@@ -58,7 +60,7 @@ import com.oroboks.util.TokenUtility;
 public class UserResource {
     private final Logger LOGGER = Logger.getLogger(UserResource.class
 	    .getSimpleName());
-
+    private final static Gson gson = new Gson();
     private final DAO<User> userDAO;
     private final DAO<Location> locationDAO;
     private final DAO<UserLocation> userLocationDAO;
@@ -489,6 +491,11 @@ public class UserResource {
     @Consumes("text/plain")
     @Path("/currentuser/testAPI")
     public Response postAPITest(String json){
+	List<Order> orders = gson.fromJson(json, new TypeToken<List<Order>>(){}.getType());
+	for(Order order : orders){
+	    System.out.println(order.getComboId());
+	    System.out.println(order.getQuantity());
+	}
 	return Response.status(HttpServletResponse.SC_OK).entity(json).build();
     }
 

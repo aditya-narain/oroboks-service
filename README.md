@@ -354,11 +354,9 @@ Sample Current JSON
 ##### POST Request
 `/oroboks/users/currentuser/orders` - Creates orders for current user.
 *Please Note : User should be authenticated so that we have currentuser in context*
-**Sample JSON for creating orders**
+**Sample JSON for creating orders. The content-type would be plain/text**
 *This is a list*   
-```json
-{
-  "orders":
+```
     [{
       "comboId":  
       {
@@ -368,7 +366,6 @@ Sample Current JSON
       "orderDate": "YYYY-MM-DD" 
     }]
     
-}
 ```
 
 

@@ -21,37 +21,37 @@ import javax.validation.constraints.NotNull;
  */
 @MappedSuperclass
 public abstract class BaseEntity implements Serializable {
-	/**
-	 * Default Serial Version ID
-	 */
-	private static final long serialVersionUID = 5456329733337540169L;
-	@Id
-	@NotNull
-	@Column(name = "UUID", unique = true, updatable = false)
-	private String uuid;
+    /**
+     * Default Serial Version ID
+     */
+    private static final long serialVersionUID = 5456329733337540169L;
+    @Id
+    @NotNull
+    @Column(name = "UUID", unique = true, updatable = false)
+    private String uuid;
 
-	/**
-	 * Gets the Unique Identifier. Will be null if UUID is set as null.
-	 * @return  unique identifier
-	 */
-	public String getUUID(){
-		return (uuid == null)? null : uuid.split("@", 2)[1];
-	}
+    /**
+     * Gets the Unique Identifier. Will be null if UUID is set as null.
+     * @return  unique identifier
+     */
+    public String getUUID(){
+	return (uuid == null)? null :(uuid.contains("@"))? uuid.split("@", 2)[1]:uuid;
+    }
 
-	/**
-	 * Sets the unique UUID
-	 * @param uuid represents the unique identifier for the entity to persist.
-	 */
-	public final void setUUID(String uuid){
-		this.uuid = (uuid == null)?null : getClass().getSimpleName() + "@" + uuid;
-	}
+    /**
+     * Sets the unique UUID
+     * @param uuid represents the unique identifier for the entity to persist.
+     */
+    public final void setUUID(String uuid){
+	this.uuid = (uuid == null)?null : getClass().getSimpleName() + "@" + uuid;
+    }
 
-	/**
-	 * Sets the UUID
-	 */
-	@PrePersist
-	@PreUpdate
-	public void setUUID(){
-		setUUID(UUID.randomUUID().toString());
-	}
+    /**
+     * Sets the UUID
+     */
+    @PrePersist
+    @PreUpdate
+    public void setUUID(){
+	setUUID(UUID.randomUUID().toString());
+    }
 }

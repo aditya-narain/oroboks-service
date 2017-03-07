@@ -31,12 +31,13 @@ import net.spy.memcached.MemcachedClient;
 
 import org.joda.time.DateTime;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.oroboks.cache.MemcacheHandler;
 import com.oroboks.dao.DAO;
 import com.oroboks.entities.Combo;
 import com.oroboks.entities.Location;
 import com.oroboks.entities.Order;
-import com.oroboks.entities.Order.OrderWrapper;
 import com.oroboks.entities.User;
 import com.oroboks.entities.UserLocation;
 import com.oroboks.exception.SaveException;
@@ -57,8 +58,9 @@ import com.oroboks.util.TokenUtility;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class UserResource {
-    private final Logger LOGGER = Logger.getLogger(UserResource.class
+    private final static Logger LOGGER = Logger.getLogger(UserResource.class
 	    .getSimpleName());
+    private final static Gson gson = new Gson();
     private final DAO<User> userDAO;
     private final DAO<Location> locationDAO;
     private final DAO<UserLocation> userLocationDAO;
@@ -457,28 +459,27 @@ public class UserResource {
     /**
      * This resource add order for the currentuser.
      * 
-     * @param orderWrapper
-     *            Wrapper class of {@link Order} that contains list of
-     *            {@link Order order} given by current user. Cannot be null
+     * @param orderJson
+     *            Orders in the json string.
      * @param httpHeaders
      *            represents the http header from where cookie is retrieved.
      *            Will never be null
      * @return {@link Response} for order being created successfully.
      */
     @POST
+    @Consumes("text/plain")
     @Path("/currentuser/orders")
-    public Response addUserOrders(OrderWrapper orderWrapper,
-	    @Context HttpHeaders httpHeaders) {
-	if (orderWrapper == null) {
+    public Response addUserOrders(String orderJson,@Context HttpHeaders httpHeaders) {
+	if (orderJson == null || orderJson.trim().isEmpty()) {
 	    return Response.status(HttpServletResponse.SC_NOT_ACCEPTABLE)
-		    .entity("orderWrapper cannot be null").build();
+		    .entity("orderJSON cannot be null or empty").build();
 	}
 	String userId = tokenInstance.getEntityIdFromHttpHeader(httpHeaders);
 	if (userId == null || userId.trim().isEmpty()) {
 	    return Response.status(HttpServletResponse.SC_UNAUTHORIZED)
 		    .entity("UnAuthorized access of API").build();
 	}
-	List<Order> orders = orderWrapper.getOrders();
+	List<Order> orders = gson.fromJson(orderJson, new TypeToken<List<Order>>(){}.getType());
 	return addUserOrders(orders, userId);
     }
 

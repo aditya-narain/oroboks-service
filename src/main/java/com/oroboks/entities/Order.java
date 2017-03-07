@@ -1,7 +1,6 @@
 package com.oroboks.entities;
 
 import java.util.Date;
-import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -173,25 +172,5 @@ public class Order extends BaseEntity {
     public void setQuantity(int quantity) {
 	this.quantity = quantity;
     }
-
-    public static class OrderWrapper{
-	private List<Order> orders;
-	public OrderWrapper(){
-	    /*
-	     * Empty Constructor
-	     */
-	}
-	public void setOrder(List<Order> orders){
-	    if(orders == null){
-		throw new IllegalArgumentException("orders cannot be null");
-	    }
-	    this.orders = orders;
-	}
-
-	public List<Order> getOrders(){
-	    return orders;
-	}
-    }
-
 
 }

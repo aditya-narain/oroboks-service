@@ -177,11 +177,16 @@
 			<artifactId>slf4j-simple</artifactId>
 			<version>1.6.1</version>
 		</dependency>
-		<!-- Google Maps Dependecy -->
+		<!-- Google API Dependecies -->
 		<dependency>
     		<groupId>com.google.maps</groupId>
     		<artifactId>google-maps-services</artifactId>
     		<version>0.1.11</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.google.code.gson</groupId>
+		    <artifactId>gson</artifactId>
+		    <version>2.7</version>
 		</dependency>
 		<!-- Authentication JWT Dependency -->
 		<dependency>

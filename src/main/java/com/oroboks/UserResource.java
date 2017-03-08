@@ -452,7 +452,7 @@ public class UserResource {
 	    orderDAO.addEntity(order);
 	}
 	return Response.status(HttpServletResponse.SC_CREATED)
-		.entity("{order created}").build();
+		.entity("order created").build();
 
     }
 

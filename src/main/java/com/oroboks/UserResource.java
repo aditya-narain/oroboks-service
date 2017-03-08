@@ -451,8 +451,7 @@ public class UserResource {
 	    order.setIsActive(Status.ACTIVE.getStatus());
 	    orderDAO.addEntity(order);
 	}
-	return Response.status(HttpServletResponse.SC_CREATED)
-		.entity("order created").build();
+	return Response.status(HttpServletResponse.SC_CREATED).build();
 
     }
 

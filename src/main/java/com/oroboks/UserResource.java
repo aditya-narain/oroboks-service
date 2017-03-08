@@ -496,7 +496,7 @@ public class UserResource {
 	    System.out.println(order.getComboId());
 	    System.out.println(order.getQuantity());
 	}
-	return Response.status(HttpServletResponse.SC_OK).entity(json).build();
+	return Response.status(HttpServletResponse.SC_OK).entity("{order created}").build();
     }
 
     private Combo getComboWithId(Combo combo) {

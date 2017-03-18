@@ -38,7 +38,7 @@ public class CorsFilter implements Filter {
     }
 
     private void addCorsHeader(HttpServletResponse response) {
-	response.addHeader("Access-Control-Allow-Origin", "https://safe-reef-14664.herokuapp.com/");
+	response.addHeader("Access-Control-Allow-Origin", "https://safe-reef-14664.herokuapp.com");
 	response.addHeader("Access-Control-Allow-Credentials", "true");
 	response.addHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, HEAD");
 	response.addHeader("Access-Control-Allow-Headers", "X-PINGOTHER, Origin, X-Requested-With, Content-Type, Accept, Authorization");

@@ -27,11 +27,11 @@ public class GuiceJobFactory implements JobFactory {
 	    throws SchedulerException {
 	// Get the job detail so we can get the job class
 	JobDetail jobDetail = bundle.getJobDetail();
-	Class jobClass = jobDetail.getJobClass();
+	Class<? extends Job> jobClass = jobDetail.getJobClass();
 
 	try {
 	    // Get a new instance of that class from Guice so we can do dependency injection
-	    return (Job) injector.getInstance(jobClass);
+	    return injector.getInstance(jobClass);
 	} catch (Exception e) {
 	    LOGGER.log(Level.SEVERE, "Error occured while creating new Job.");
 	    throw new RuntimeException("Exception thrown with error"+e);

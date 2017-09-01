@@ -1,5 +1,6 @@
 package com.oroboks;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import net.spy.memcached.MemcachedClient;
 
 import org.joda.time.DateTime;
 
+import com.auth0.jwt.exceptions.JWTCreationException;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.oroboks.cache.MemcacheHandler;
@@ -51,7 +53,7 @@ import com.oroboks.util.TokenUtility;
 
 /**
  * Root resource (exposed at "users" path)
- * 
+ *
  * @author Aditya Narain
  */
 @Path("/users")
@@ -108,7 +110,7 @@ public class UserResource {
 
     /**
      * Returns the current User with the current token in the cookies
-     * 
+     *
      * @param httpHeaders
      *            represents the http header from where cookie is retrieved.
      *            Will never be null
@@ -127,7 +129,7 @@ public class UserResource {
 
     /**
      * Gets User with its primary id.
-     * 
+     *
      * @param userId
      *            primary id of the user. Cannot be null or empty.
      * @return {@link Response} when GET statement is executed.
@@ -158,7 +160,7 @@ public class UserResource {
 
     /**
      * Updates the {@link User user} instance for the provided userId.
-     * 
+     *
      * @param userId
      *            id of the user that needs to be updated.
      * @param user
@@ -178,7 +180,7 @@ public class UserResource {
      * validated against the orokey. If secretKey does not match
      * {@link HttpServletResponse#SC_FORBIDDEN} is returned else user token is
      * generated in the cookie.<br/>
-     * 
+     *
      * @param secretKey
      *            secret key entered by user in the Authorization Header. Cannot
      *            be null or empty.
@@ -215,7 +217,17 @@ public class UserResource {
 		    .entity("User does not exist in database").build();
 	}
 	User user = activeUsers.get(0);
-	String token = tokenInstance.generateJWTKey(user.getUUID());
+	String token;
+	try {
+	    token = tokenInstance.generateJWTKey(user.getUUID());
+	} catch (UnsupportedEncodingException e) {
+	    return Response
+		    .status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+		    .entity("Unsupported Encoding exception occured").build();
+	} catch (JWTCreationException e) {
+	    return Response.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+		    .entity("Error in creating JWT token.").build();
+	}
 	NewCookie cookie = tokenInstance.createCookieWithToken(token);
 	List<Object> userMapList = new ArrayList<Object>();
 	userMapList.add(EntityJsonUtility.getUserResultsMap(user, uriInfo));
@@ -228,7 +240,7 @@ public class UserResource {
 
     /**
      * POST the {@link User user} provided.
-     * 
+     *
      * @param user
      *            {@link User} to be added.
      * @param secretKey
@@ -260,8 +272,22 @@ public class UserResource {
 	final String token;
 	NewCookie cookie = null;
 	if (savedUser != null) {
-	    token = tokenInstance.generateJWTKey(savedUser.getUUID());
-	    cookie = tokenInstance.createCookieWithToken(token);
+	    try {
+		token = tokenInstance.generateJWTKey(savedUser.getUUID());
+		cookie = tokenInstance.createCookieWithToken(token);
+	    } catch (UnsupportedEncodingException e) {
+		LOGGER.log(Level.SEVERE, "Unsupported encoding exception occured. User is saved though");
+		return Response
+			.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+			.entity("Unsupported Encoding exception occured while creating JWT. User is saved")
+			.build();
+	    } catch (JWTCreationException e) {
+		LOGGER.log(Level.SEVERE, "Exception while creating JWT. User is saved though");
+		return Response
+			.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+			.entity("Exception while creating JWT. User is saved though")
+			.build();
+	    }
 	}
 	// Ensure cookie does not add token if user is already saved.
 	return (savedUser == null) ? Response
@@ -274,11 +300,11 @@ public class UserResource {
 
     /**
      * Adds location to the user.
-     * 
+     *
      * @param httpHeaders
      *            represents the http header from where cookie is retrieved.
      *            Will never be null
-     * 
+     *
      * @param location
      *            location to be associated with the user. Cannot be null
      * @return {@link Response}. If UserLocation is already added
@@ -351,7 +377,7 @@ public class UserResource {
     /**
      * DeActivates the {@link User user} with provided userId. Returns a 204 No
      * Content Status when deleted.
-     * 
+     *
      * @param httpHeaders
      *            represents the http header from where cookie is retrieved.
      *            Will never be null.
@@ -390,7 +416,7 @@ public class UserResource {
     /**
      * Retrieves order for the currentuser. The order retrieved is for the week
      * starting from currentDate.
-     * 
+     *
      * @param httpHeaders
      *            represents the http header from where cookie is retrieved.
      *            Will never be null
@@ -457,7 +483,7 @@ public class UserResource {
 
     /**
      * This resource add order for the currentuser.
-     * 
+     *
      * @param orderJson
      *            Orders in the json string.
      * @param httpHeaders
@@ -505,7 +531,7 @@ public class UserResource {
 
     /**
      * Retrieves users from database
-     * 
+     *
      * @param user
      *            {@link User user} entity to be saved. will not be null
      * @return true is user already exists, false otherwise

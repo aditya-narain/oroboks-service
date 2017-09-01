@@ -1,5 +1,6 @@
 package com.oroboks.util;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.auth0.jwt.exceptions.JWTCreationException;
 import com.oroboks.util.TokenUtility.OROSecretReader;
 
 /**
@@ -46,17 +48,17 @@ public class TokenUtilityTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testGenerateJWTKey_nullEntityId(){
+    public void testGenerateJWTKey_nullEntityId() throws UnsupportedEncodingException, JWTCreationException{
 	utility.generateJWTKey((String)null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testGenerateJWTKey_EmptyEntityId(){
+    public void testGenerateJWTKey_EmptyEntityId() throws UnsupportedEncodingException, JWTCreationException{
 	utility.generateJWTKey("     ");
     }
 
     @Test
-    public void testGenerateJWTKeyAndGetEntityIdFromToken(){
+    public void testGenerateJWTKeyAndGetEntityIdFromToken() throws UnsupportedEncodingException, JWTCreationException{
 	String entityId = "abc@1";
 	String token = utility.generateJWTKey(entityId);
 	Assert.assertEquals(entityId, utility.getEntityIdFromToken(token));
@@ -110,7 +112,7 @@ public class TokenUtilityTest {
 
 
     @Test
-    public void testEntityIdFromHttpHeader(){
+    public void testEntityIdFromHttpHeader() throws UnsupportedEncodingException, JWTCreationException{
 	String token = utility.generateJWTKey("entity@1");
 	Map<String, Cookie> cookieMap = new HashMap<String, Cookie>();
 	cookieMap.put("Token", mockCookie);
